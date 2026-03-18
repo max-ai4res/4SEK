@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4SEK | Centrale Operativa Sicurezza</title>
+<style>
+/* ─── RESET & BASE ────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#0a0e17;--bg-secondary:#111827;--bg-card:#1a2236;--bg-card-hover:#1e2844;
+  --border:#2a3654;--border-light:#3a4a6a;
+  --text-primary:#e8ecf4;--text-secondary:#8b9cc0;--text-muted:#5a6a8a;
+  --accent:#3b82f6;--accent-glow:rgba(59,130,246,.3);
+  --red:#ef4444;--red-glow:rgba(239,68,68,.25);
+  --orange:#f59e0b;--orange-glow:rgba(245,158,11,.25);
+  --yellow:#eab308;--yellow-glow:rgba(234,179,8,.2);
+  --green:#22c55e;--green-glow:rgba(34,197,94,.2);
+  --cyan:#06b6d4;
+  --radius:10px;--radius-sm:6px;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',monospace;
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg-primary);color:var(--text-primary)}
+a{color:var(--accent);text-decoration:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg-secondary)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+/* ─── LAYOUT ──────────────────────────────────────────── */
+.app{display:grid;grid-template-rows:56px 1fr;grid-template-columns:72px 1fr;height:100vh;width:100vw}
+.topbar{grid-column:1/-1;display:flex;align-items:center;padding:0 20px;background:var(--bg-secondary);border-bottom:1px solid var(--border);z-index:100;gap:16px}
+.sidebar{display:flex;flex-direction:column;align-items:center;padding:12px 0;background:var(--bg-secondary);border-right:1px solid var(--border);gap:4px;overflow-y:auto}
+.main{overflow:hidden;position:relative}
+
+/* ─── TOPBAR ──────────────────────────────────────────── */
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:1px;margin-right:auto}
+.logo svg{width:32px;height:32px}
+.logo .brand{background:linear-gradient(135deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo .sub{font-size:10px;font-weight:500;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase}
+.topbar-center{display:flex;align-items:center;gap:24px;margin:0 auto}
+.stat-pill{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;font-size:12px;font-weight:500}
+.stat-pill .dot{width:8px;height:8px;border-radius:50%}
+.stat-pill .dot.green{background:var(--green);box-shadow:0 0 8px var(--green-glow)}
+.stat-pill .dot.red{background:var(--red);box-shadow:0 0 8px var(--red-glow);animation:pulse-dot 2s infinite}
+.stat-pill .dot.orange{background:var(--orange);box-shadow:0 0 8px var(--orange-glow)}
+.stat-pill .dot.blue{background:var(--accent);box-shadow:0 0 8px var(--accent-glow)}
+.stat-pill .val{color:var(--text-primary);font-weight:700;font-family:var(--mono)}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.clock{font-family:var(--mono);font-size:20px;font-weight:600;letter-spacing:1px}
+.clock-date{font-size:11px;color:var(--text-muted);text-align:right}
+.operator-badge{display:flex;align-items:center;gap:10px;padding:6px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer}
+.operator-badge:hover{border-color:var(--accent)}
+.operator-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.operator-info{font-size:12px;line-height:1.3}
+.operator-info .name{font-weight:600}
+.operator-info .role{color:var(--text-muted);font-size:10px}
+
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ─── SIDEBAR ─────────────────────────────────────────── */
+.nav-btn{width:52px;height:52px;border:none;border-radius:var(--radius);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:600;letter-spacing:.5px;transition:all .2s;position:relative}
+.nav-btn svg{width:22px;height:22px;transition:all .2s}
+.nav-btn:hover{color:var(--text-primary);background:var(--bg-card)}
+.nav-btn.active{color:var(--accent);background:rgba(59,130,246,.1)}
+.nav-btn.active::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+.nav-btn .badge{position:absolute;top:6px;right:6px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;animation:pulse-dot 2s infinite}
+.nav-sep{width:36px;height:1px;background:var(--border);margin:8px 0}
+
+/* ─── VIEW PANELS ─────────────────────────────────────── */
+.view{position:absolute;inset:0;padding:16px;overflow-y:auto;display:none;opacity:0;transition:opacity .3s}
+.view.active{display:block;opacity:1}
+
+/* ─── DASHBOARD VIEW ──────────────────────────────────── */
+.dash-grid{display:grid;grid-template-columns:1fr 380px;grid-template-rows:auto 1fr;gap:16px;height:100%}
+.dash-metrics{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden;transition:all .3s}
+.metric-card:hover{border-color:var(--border-light);transform:translateY(-1px)}
+.metric-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.metric-card.severity-critical::after{background:linear-gradient(90deg,var(--red),transparent)}
+.metric-card.severity-high::after{background:linear-gradient(90deg,var(--orange),transparent)}
+.metric-card.severity-medium::after{background:linear-gradient(90deg,var(--yellow),transparent)}
+.metric-card.severity-low::after{background:linear-gradient(90deg,var(--accent),transparent)}
+.metric-card.severity-ok::after{background:linear-gradient(90deg,var(--green),transparent)}
+.metric-card.severity-info::after{background:linear-gradient(90deg,var(--cyan),transparent)}
+.metric-label{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.metric-value{font-family:var(--mono);font-size:28px;font-weight:800;line-height:1}
+.metric-sub{font-size:11px;color:var(--text-secondary);margin-top:6px;display:flex;align-items:center;gap:4px}
+.metric-sub .up{color:var(--red)}
+.metric-sub .down{color:var(--green)}
+.metric-icon{position:absolute;right:14px;top:14px;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;opacity:.6}
+
+.dash-cameras{display:flex;flex-direction:column;gap:12px;min-height:0}
+.dash-alerts{display:flex;flex-direction:column;gap:12px;min-height:0}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.section-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.section-title .count{font-family:var(--mono);font-size:12px;color:var(--text-muted);font-weight:500}
+.section-action{font-size:11px;color:var(--accent);cursor:pointer;font-weight:500}
+.section-action:hover{text-decoration:underline}
+
+/* ─── CAMERA GRID ─────────────────────────────────────── */
+.cam-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1;overflow-y:auto;min-height:0}
+.cam-grid.full{grid-template-columns:repeat(4,1fr)}
+.cam-cell{position:relative;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-secondary);aspect-ratio:16/10;cursor:pointer;border:2px solid transparent;transition:border-color .3s}
+.cam-cell:hover{border-color:var(--accent)}
+.cam-cell.alert-active{border-color:var(--red);animation:cam-alert 2s infinite}
+.cam-cell.alert-warning{border-color:var(--orange);animation:cam-warn 3s infinite}
+@keyframes cam-alert{0%,100%{border-color:var(--red);box-shadow:0 0 15px var(--red-glow)}50%{border-color:rgba(239,68,68,.4);box-shadow:none}}
+@keyframes cam-warn{0%,100%{border-color:var(--orange);box-shadow:0 0 10px var(--orange-glow)}50%{border-color:rgba(245,158,11,.3);box-shadow:none}}
+.cam-cell img{width:100%;height:100%;object-fit:cover;filter:brightness(.85) contrast(1.1)}
+.cam-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.6) 0%,transparent 40%,transparent 60%,rgba(0,0,0,.7) 100%);pointer-events:none}
+.cam-id{position:absolute;top:6px;left:8px;font-size:10px;font-weight:600;font-family:var(--mono);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.cam-rec{position:absolute;top:6px;right:8px;display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--red)}
+.cam-rec::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse-dot 1.5s infinite}
+.cam-status{position:absolute;bottom:6px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:center}
+.cam-zone{font-size:9px;font-weight:500;color:rgba(255,255,255,.8);padding:2px 6px;background:rgba(0,0,0,.5);border-radius:3px}
+.cam-ai-tag{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px}
+.cam-ai-tag.ok{background:rgba(34,197,94,.3);color:var(--green)}
+.cam-ai-tag.warn{background:rgba(245,158,11,.3);color:var(--orange)}
+.cam-ai-tag.danger{background:rgba(239,68,68,.3);color:var(--red)}
+
+/* ── Camera Modal ── */
+.cam-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;display:none;align-items:center;justify-content:center;padding:30px}
+.cam-modal-bg.open{display:flex}
+.cam-modal{width:90vw;max-width:1200px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:grid;grid-template-columns:1fr 340px;max-height:80vh}
+.cam-modal-feed{position:relative;background:#000;min-height:400px}
+.cam-modal-feed img{width:100%;height:100%;object-fit:cover}
+.cam-modal-feed .cam-overlay{pointer-events:none}
+.cam-modal-sidebar{display:flex;flex-direction:column;border-left:1px solid var(--border);overflow-y:auto}
+.cam-modal-header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.cam-modal-header h3{font-size:15px;font-weight:700}
+.cam-modal-close{width:32px;height:32px;border:none;background:var(--bg-secondary);border-radius:var(--radius-sm);color:var(--text-primary);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+.cam-modal-close:hover{background:var(--red);color:#fff}
+.cam-modal-section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.cam-modal-section h4{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.cam-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cam-ctrl-btn{border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);border-radius:var(--radius-sm);padding:8px;font-size:11px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s}
+.cam-ctrl-btn svg{width:18px;height:18px}
+.cam-ctrl-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.cam-ctrl-btn.danger:hover{background:var(--red);border-color:var(--red)}
+.cam-detection-list{display:flex;flex-direction:column;gap:6px}
+.cam-detection{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg-secondary);border-radius:var(--radius-sm);font-size:12px}
+.cam-detection .severity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cam-detection .det-time{font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-left:auto}
+
+/* ─── ALERTS PANEL ────────────────────────────────────── */
+.alert-list{display:flex;flex-direction:column;gap:6px;flex:1;overflow-y:auto;min-height:0;padding-right:4px}
+.alert-item{display:flex;gap:12px;padding:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.alert-item:hover{background:var(--bg-card-hover);border-color:var(--border-light)}
+.alert-item.new{animation:alert-slide .4s ease-out}
+.alert-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.alert-item.critical::before{background:var(--red)}
+.alert-item.high::before{background:var(--orange)}
+.alert-item.medium::before{background:var(--yellow)}
+.alert-item.low::before{background:var(--accent)}
+@keyframes alert-slide{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.alert-severity{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.alert-severity.critical{background:rgba(239,68,68,.15);color:var(--red)}
+.alert-severity.high{background:rgba(245,158,11,.15);color:var(--orange)}
+.alert-severity.medium{background:rgba(234,179,8,.15);color:var(--yellow)}
+.alert-severity.low{background:rgba(59,130,246,.15);color:var(--accent)}
+.alert-body{flex:1;min-width:0}
+.alert-title{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert-meta{font-size:11px;color:var(--text-muted);display:flex;gap:10px;align-items:center}
+.alert-time{font-family:var(--mono);font-size:10px;color:var(--text-muted);white-space:nowrap;align-self:flex-start;margin-top:2px}
+.alert-actions{display:flex;flex-direction:column;gap:4px;align-self:center}
+.alert-act-btn{width:28px;height:28px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s}
+.alert-act-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ─── MAP VIEW ────────────────────────────────────────── */
+.map-container{height:100%;display:grid;grid-template-columns:1fr 320px;gap:16px}
+.map-canvas{position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.map-canvas svg{width:100%;height:100%}
+.map-sidebar{display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.map-legend{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.map-legend h4{font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text-secondary)}
+.legend-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.map-floor-selector{display:flex;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.map-floor-btn{flex:1;padding:10px;border:none;background:transparent;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.map-floor-btn.active{background:var(--accent);color:#fff}
+.map-floor-btn:hover:not(.active){background:var(--bg-card-hover)}
+
+/* ─── GUARDS VIEW ─────────────────────────────────────── */
+.guards-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:100%}
+.guard-list-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+.guard-list-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.guard-list-header h3{font-size:14px;font-weight:700}
+.guard-list{flex:1;overflow-y:auto;padding:8px}
+.guard-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;border:1px solid transparent}
+.guard-card:hover{background:var(--bg-card-hover);border-color:var(--border)}
+.guard-card.selected{background:rgba(59,130,246,.1);border-color:var(--accent)}
+.guard-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;position:relative}
+.guard-avatar .status-ring{position:absolute;inset:-2px;border-radius:50%;border:2px solid}
+.guard-info{flex:1}
+.guard-name{font-size:13px;font-weight:600}
+.guard-detail{font-size:11px;color:var(--text-muted)}
+.guard-status-tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.guard-status-tag.patrol{background:rgba(34,197,94,.15);color:var(--green)}
+.guard-status-tag.standby{background:rgba(59,130,246,.15);color:var(--accent)}
+.guard-status-tag.responding{background:rgba(239,68,68,.15);color:var(--red);animation:pulse-dot 2s infinite}
+.guard-status-tag.break{background:rgba(234,179,8,.15);color:var(--yellow)}
+
+/* ─── ANALYTICS VIEW ──────────────────────────────────── */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:16px;height:100%}
+.analytics-full{grid-column:1/-1}
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column}
+.chart-card h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.chart-card h3 span{font-size:11px;color:var(--text-muted);font-weight:400}
+.chart-area{flex:1;position:relative;min-height:200px}
+
+/* ─── COMMS VIEW ──────────────────────────────────────── */
+.comms-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;height:100%}
+.comms-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+.comms-header{padding:14px 16px;border-bottom:1px solid var(--border)}
+.comms-header h3{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.comms-body{flex:1;overflow-y:auto;padding:12px}
+.speaker-card{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:all .2s}
+.speaker-card:hover{background:var(--bg-card-hover)}
+.speaker-card .icon{width:36px;height:36px;border-radius:8px;background:rgba(59,130,246,.1);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.speaker-card .info{flex:1}
+.speaker-card .info .label{font-size:12px;font-weight:600}
+.speaker-card .info .sub{font-size:10px;color:var(--text-muted)}
+.speaker-card .toggle{width:36px;height:20px;border-radius:10px;background:var(--border);position:relative;cursor:pointer;transition:all .3s}
+.speaker-card .toggle.on{background:var(--green)}
+.speaker-card .toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:all .3s}
+.speaker-card .toggle.on::after{left:18px}
+.msg-preset{display:flex;gap:6px;flex-wrap:wrap;padding:12px}
+.preset-btn{padding:8px 12px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:11px;font-weight:500;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.preset-btn.danger{border-color:rgba(239,68,68,.3)}
+.preset-btn.danger:hover{background:var(--red);border-color:var(--red)}
+.contact-card{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-secondary);border-radius:var(--radius-sm);margin-bottom:8px}
+.contact-card .avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
+.contact-card .info{flex:1}
+.contact-card .info .name{font-size:13px;font-weight:600}
+.contact-card .info .desc{font-size:10px;color:var(--text-muted)}
+.contact-card .call-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--green);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.contact-card .call-btn:hover{transform:scale(1.1);box-shadow:0 0 12px var(--green-glow)}
+.log-entry{padding:8px 10px;border-left:2px solid var(--border);margin-bottom:6px;font-size:12px}
+.log-entry .time{font-family:var(--mono);font-size:10px;color:var(--text-muted)}
+.log-entry.sent{border-color:var(--green)}
+.log-entry.received{border-color:var(--accent)}
+.log-entry.emergency{border-color:var(--red)}
+
+/* ─── SVG MAP STYLES ──────────────────────────────────── */
+.map-zone{fill:rgba(59,130,246,.08);stroke:var(--accent);stroke-width:1;stroke-dasharray:4 2;cursor:pointer;transition:all .3s}
+.map-zone:hover{fill:rgba(59,130,246,.15)}
+.map-zone.alert{fill:rgba(239,68,68,.1);stroke:var(--red);animation:zone-pulse 2s infinite}
+@keyframes zone-pulse{0%,100%{fill:rgba(239,68,68,.1)}50%{fill:rgba(239,68,68,.2)}}
+.map-cam{cursor:pointer;transition:all .2s}
+.map-cam:hover{transform:scale(1.2)}
+.map-cam circle{transition:all .3s}
+.map-guard-marker{cursor:pointer}
+.map-guard-marker:hover{transform:scale(1.15)}
+
+/* ─── TOAST / NOTIFICATION ────────────────────────────── */
+.toast-container{position:fixed;top:70px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{pointer-events:all;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.4);animation:toast-in .4s ease-out;max-width:400px;cursor:pointer}
+.toast.leaving{animation:toast-out .3s ease-in forwards}
+.toast .sev-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.toast.critical .sev-icon{background:rgba(239,68,68,.15);color:var(--red)}
+.toast.high .sev-icon{background:rgba(245,158,11,.15);color:var(--orange)}
+.toast.medium .sev-icon{background:rgba(234,179,8,.15);color:var(--yellow)}
+.toast.low .sev-icon{background:rgba(59,130,246,.15);color:var(--accent)}
+.toast .t-body{flex:1}
+.toast .t-title{font-size:13px;font-weight:600}
+.toast .t-desc{font-size:11px;color:var(--text-muted);margin-top:1px}
+.toast .t-time{font-family:var(--mono);font-size:10px;color:var(--text-muted);align-self:flex-start}
+@keyframes toast-in{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toast-out{to{transform:translateX(100%);opacity:0}}
+
+/* ─── INCIDENT DETAIL PANEL ───────────────────────────── */
+.incident-panel{position:fixed;top:56px;right:0;bottom:0;width:420px;background:var(--bg-card);border-left:1px solid var(--border);z-index:500;transform:translateX(100%);transition:transform .3s;display:flex;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,.3)}
+.incident-panel.open{transform:translateX(0)}
+.incident-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.incident-header .close-btn{margin-left:auto;width:32px;height:32px;border:none;background:var(--bg-secondary);border-radius:var(--radius-sm);color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.incident-body{flex:1;overflow-y:auto;padding:16px}
+.incident-img{width:100%;border-radius:var(--radius-sm);margin-bottom:12px;border:1px solid var(--border)}
+.incident-field{margin-bottom:12px}
+.incident-field label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.incident-field .val{font-size:13px;font-weight:500}
+.incident-actions{padding:16px;border-top:1px solid var(--border);display:flex;gap:8px}
+.inc-btn{flex:1;padding:10px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.inc-btn:hover{background:var(--bg-card-hover)}
+.inc-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.inc-btn.primary:hover{background:#2563eb}
+.inc-btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.inc-btn.danger:hover{background:#dc2626}
+
+/* ─── HEATMAP OVERLAY ─────────────────────────────────── */
+.heatmap-overlay{position:absolute;inset:0;pointer-events:none;opacity:.6}
+
+/* ─── BAR CHART (CSS) ─────────────────────────────────── */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:100%;padding-top:10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .5s ease;position:relative}
+.bar:hover{filter:brightness(1.2)}
+.bar-label{font-size:9px;color:var(--text-muted);font-weight:500}
+.bar-val{font-size:10px;font-weight:600;font-family:var(--mono);color:var(--text-secondary)}
+
+/* ─── DONUT CHART (CSS) ───────────────────────────────── */
+.donut-container{display:flex;align-items:center;gap:20px;height:100%}
+.donut{width:140px;height:140px;border-radius:50%;position:relative;flex-shrink:0}
+.donut-center{position:absolute;inset:25%;border-radius:50%;background:var(--bg-card);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-center .big{font-family:var(--mono);font-size:22px;font-weight:800}
+.donut-center .small{font-size:10px;color:var(--text-muted)}
+.donut-legend{display:flex;flex-direction:column;gap:8px}
+.donut-legend-item{display:flex;align-items:center;gap:8px;font-size:12px}
+.donut-legend-item .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* ─── TIMELINE ────────────────────────────────────────── */
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;padding-bottom:16px;padding-left:16px}
+.timeline-item::before{content:'';position:absolute;left:-17px;top:4px;width:10px;height:10px;border-radius:50%;border:2px solid var(--border);background:var(--bg-card)}
+.timeline-item.critical::before{border-color:var(--red);background:var(--red)}
+.timeline-item.high::before{border-color:var(--orange);background:var(--orange)}
+.timeline-item.medium::before{border-color:var(--yellow);background:var(--yellow)}
+.timeline-item.low::before{border-color:var(--accent);background:var(--accent)}
+.timeline-item .t-time{font-family:var(--mono);font-size:10px;color:var(--text-muted)}
+.timeline-item .t-text{font-size:12px;margin-top:2px}
+
+/* ─── UTILITY ─────────────────────────────────────────── */
+.glow-red{text-shadow:0 0 10px var(--red-glow)}
+.glow-green{text-shadow:0 0 10px var(--green-glow)}
+.text-red{color:var(--red)}.text-orange{color:var(--orange)}.text-yellow{color:var(--yellow)}
+.text-green{color:var(--green)}.text-blue{color:var(--accent)}.text-cyan{color:var(--cyan)}
+.text-muted{color:var(--text-muted)}
+.fw-mono{font-family:var(--mono)}
+.badge-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;font-size:10px;font-weight:700;font-family:var(--mono)}
+.badge-red{background:var(--red);color:#fff}
+.badge-orange{background:var(--orange);color:#000}
+
+/* ─── RESPONSIVE ──────────────────────────────────────── */
+@media(max-width:1200px){.dash-grid{grid-template-columns:1fr}.dash-alerts{max-height:300px}}
+
+/* ─── AUDIO VISUALIZER ────────────────────────────────── */
+.audio-bars{display:flex;align-items:flex-end;gap:2px;height:24px}
+.audio-bar{width:3px;background:var(--green);border-radius:1px;animation:audio-bounce var(--d,.5s) ease-in-out infinite alternate}
+@keyframes audio-bounce{from{height:3px}to{height:var(--h,18px)}}
+
+/* ─── CAMERA FULL VIEW TABS ───────────────────────────── */
+.cam-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 16px}
+.cam-tab{padding:10px 16px;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.cam-tab:hover{color:var(--text-primary)}
+.cam-tab.active{color:var(--accent);border-color:var(--accent)}
+
+/* ─── FILTER BAR ──────────────────────────────────────── */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-chip{padding:5px 12px;border:1px solid var(--border);border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text-secondary);background:transparent}
+.filter-chip:hover{border-color:var(--accent);color:var(--accent)}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ─── SCANNING LINE EFFECT ON CAMERA FEEDS ────────────── */
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.4),transparent);animation:scan 4s linear infinite;pointer-events:none}
+@keyframes scan{from{top:-2px}to{top:100%}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ─── TOPBAR ──────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="logo">
+      <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="url(#lg)" stroke-width="2"/><path d="M10 16l4 4 8-8" stroke="url(#lg)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs></svg>
+      <div><div class="brand">4SEK</div><div class="sub">Centrale Operativa Sicurezza</div></div>
+    </div>
+    <div class="topbar-center">
+      <div class="stat-pill"><div class="dot green"></div><span>Telecamere</span><span class="val" id="cam-online">47/48</span></div>
+      <div class="stat-pill"><div class="dot red"></div><span>Allarmi attivi</span><span class="val" id="active-alarms">3</span></div>
+      <div class="stat-pill"><div class="dot orange"></div><span>Avvisi</span><span class="val" id="active-warnings">7</span></div>
+      <div class="stat-pill"><div class="dot blue"></div><span>Guardie</span><span class="val" id="guards-count">6/8</span></div>
+    </div>
+    <div class="topbar-right">
+      <div style="text-align:right"><div class="clock" id="clock">14:32:07</div><div class="clock-date" id="clock-date">Mar 18 Marzo 2026</div></div>
+      <div class="operator-badge">
+        <div class="operator-avatar">MR</div>
+        <div class="operator-info"><div class="name">Marco Rossi</div><div class="role">Operatore Capo Turno</div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── SIDEBAR ─────────────────────────────────────── -->
+  <nav class="sidebar">
+    <button class="nav-btn active" data-view="dashboard" title="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      DASH
+    </button>
+    <button class="nav-btn" data-view="map" title="Mappa Interattiva">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      MAPPA
+    </button>
+    <button class="nav-btn" data-view="cameras" title="Telecamere">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      CAM
+    </button>
+    <button class="nav-btn" data-view="alerts" title="Allarmi & Eventi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      ALERT
+      <span class="badge" id="alert-badge">3</span>
+    </button>
+    <div class="nav-sep"></div>
+    <button class="nav-btn" data-view="guards" title="Personale">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/><circle cx="12" cy="10" r="3"/><path d="M7 19v-1a5 5 0 0110 0v1"/></svg>
+      TEAM
+    </button>
+    <button class="nav-btn" data-view="analytics" title="Analisi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      STATS
+    </button>
+    <button class="nav-btn" data-view="comms" title="Comunicazioni">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      AUDIO
+    </button>
+    <div style="flex:1"></div>
+    <button class="nav-btn" id="btn-emergency" title="EMERGENZA" style="color:var(--red)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      SOS
+    </button>
+  </nav>
+
+  <!-- ─── MAIN CONTENT ────────────────────────────────── -->
+  <div class="main">
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="dash-grid">
+        <div class="dash-metrics">
+          <div class="metric-card severity-critical"><div class="metric-label">Allarmi Critici</div><div class="metric-value text-red" id="m-critical">2</div><div class="metric-sub"><span class="up">+1</span> ultima ora</div><div class="metric-icon" style="background:rgba(239,68,68,.1);color:var(--red)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div></div>
+          <div class="metric-card severity-high"><div class="metric-label">Allerta Alta</div><div class="metric-value text-orange" id="m-high">5</div><div class="metric-sub"><span class="down">-2</span> ultima ora</div><div class="metric-icon" style="background:rgba(245,158,11,.1);color:var(--orange)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div></div>
+          <div class="metric-card severity-medium"><div class="metric-label">Allerta Media</div><div class="metric-value text-yellow" id="m-medium">12</div><div class="metric-sub">nella norma</div><div class="metric-icon" style="background:rgba(234,179,8,.1);color:var(--yellow)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div></div>
+          <div class="metric-card severity-ok"><div class="metric-label">Visitatori Oggi</div><div class="metric-value">3.847</div><div class="metric-sub"><span class="up">+12%</span> vs martedì scorso</div><div class="metric-icon" style="background:rgba(34,197,94,.1);color:var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div></div>
+          <div class="metric-card severity-info"><div class="metric-label">Veicoli Parcheggio</div><div class="metric-value text-cyan">892</div><div class="metric-sub">78% occupazione</div><div class="metric-icon" style="background:rgba(6,182,212,.1);color:var(--cyan)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div></div>
+          <div class="metric-card severity-low"><div class="metric-label">AI Detections/h</div><div class="metric-value text-blue">247</div><div class="metric-sub">98.2% accuracy</div><div class="metric-icon" style="background:rgba(59,130,246,.1);color:var(--accent)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div></div>
+        </div>
+
+        <div class="dash-cameras">
+          <div class="section-header"><div class="section-title">Feed Telecamere <span class="count">(48 attive)</span></div><div class="section-action" onclick="switchView('cameras')">Vedi tutte &rarr;</div></div>
+          <div class="cam-grid" id="dash-cam-grid"></div>
+        </div>
+
+        <div class="dash-alerts">
+          <div class="section-header"><div class="section-title">Allarmi Recenti <span class="count" id="dash-alert-count"></span></div><div class="section-action" onclick="switchView('alerts')">Tutti gli allarmi &rarr;</div></div>
+          <div class="alert-list" id="dash-alert-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP VIEW -->
+    <div class="view" id="view-map">
+      <div class="map-container">
+        <div class="map-canvas" id="map-canvas">
+          <svg id="mall-map" viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background -->
+            <defs>
+              <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <radialGradient id="alert-glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ef4444" stop-opacity=".4"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></radialGradient>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(42,54,84,.3)" stroke-width=".5"/></pattern>
+            </defs>
+            <rect width="1000" height="700" fill="var(--bg-primary)"/>
+            <rect width="1000" height="700" fill="url(#grid)"/>
+
+            <!-- Piazza Esterna -->
+            <rect x="50" y="20" width="900" height="140" rx="6" class="map-zone" data-zone="piazza"/>
+            <text x="500" y="55" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="600" letter-spacing="2">PIAZZA ESTERNA</text>
+            <!-- Piazza detail -->
+            <rect x="200" y="65" width="600" height="70" rx="4" fill="rgba(59,130,246,.03)" stroke="var(--border)" stroke-width=".5" stroke-dasharray="2 2"/>
+            <text x="500" y="105" text-anchor="middle" fill="var(--text-muted)" font-size="9" opacity=".5">Area pedonale - Fontana</text>
+
+            <!-- Ingressi -->
+            <rect x="180" y="155" width="80" height="20" rx="3" fill="rgba(34,197,94,.1)" stroke="var(--green)" stroke-width="1"/>
+            <text x="220" y="168" text-anchor="middle" fill="var(--green)" font-size="8" font-weight="600">INGRESSO A</text>
+            <rect x="460" y="155" width="80" height="20" rx="3" fill="rgba(34,197,94,.1)" stroke="var(--green)" stroke-width="1"/>
+            <text x="500" y="168" text-anchor="middle" fill="var(--green)" font-size="8" font-weight="600">INGRESSO B</text>
+            <rect x="740" y="155" width="80" height="20" rx="3" fill="rgba(34,197,94,.1)" stroke="var(--green)" stroke-width="1"/>
+            <text x="780" y="168" text-anchor="middle" fill="var(--green)" font-size="8" font-weight="600">INGRESSO C</text>
+
+            <!-- Galleria Piano 0 -->
+            <rect x="80" y="180" width="840" height="140" rx="6" class="map-zone" data-zone="gallery-0"/>
+            <text x="500" y="210" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="600" letter-spacing="2">GALLERIA - PIANO 0</text>
+            <!-- Negozi P0 -->
+            <g opacity=".5">
+              <rect x="100" y="225" width="100" height="40" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="150" y="249" text-anchor="middle" fill="var(--text-muted)" font-size="8">L'Erbolario</text>
+              <rect x="210" y="225" width="100" height="40" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="260" y="249" text-anchor="middle" fill="var(--text-muted)" font-size="8">Primadonna</text>
+              <rect x="320" y="225" width="100" height="40" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="370" y="249" text-anchor="middle" fill="var(--text-muted)" font-size="8">MediaWorld</text>
+              <rect x="430" y="225" width="80" height="40" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="470" y="249" text-anchor="middle" fill="var(--text-muted)" font-size="8">H&M</text>
+              <rect x="520" y="225" width="100" height="40" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="570" y="249" text-anchor="middle" fill="var(--text-muted)" font-size="8">Zara</text>
+              <rect x="630" y="225" width="100" height="40" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="680" y="249" text-anchor="middle" fill="var(--text-muted)" font-size="8">Foot Locker</text>
+              <rect x="740" y="225" width="100" height="40" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="790" y="249" text-anchor="middle" fill="var(--text-muted)" font-size="8">Feltrinelli</text>
+            </g>
+            <!-- Atrio Centrale -->
+            <rect x="380" y="275" width="240" height="80" rx="8" fill="rgba(6,182,212,.06)" stroke="var(--cyan)" stroke-width="1" stroke-dasharray="4 2"/>
+            <text x="500" y="320" text-anchor="middle" fill="var(--cyan)" font-size="10" font-weight="600">ATRIO CENTRALE</text>
+            <circle cx="500" cy="305" r="4" fill="var(--cyan)" opacity=".3"/>
+
+            <!-- Galleria Piano 1 -->
+            <rect x="80" y="340" width="840" height="120" rx="6" class="map-zone" data-zone="gallery-1"/>
+            <text x="500" y="370" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="600" letter-spacing="2">GALLERIA - PIANO 1</text>
+            <!-- Negozi P1 -->
+            <g opacity=".5">
+              <rect x="100" y="385" width="120" height="35" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="160" y="406" text-anchor="middle" fill="var(--text-muted)" font-size="8">Decathlon</text>
+              <rect x="230" y="385" width="100" height="35" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="280" y="406" text-anchor="middle" fill="var(--text-muted)" font-size="8">Sephora</text>
+              <rect x="440" y="385" width="120" height="35" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="500" y="406" text-anchor="middle" fill="var(--text-muted)" font-size="8">Apple Store</text>
+              <rect x="670" y="385" width="120" height="35" rx="3" fill="rgba(139,156,192,.05)" stroke="var(--border)" stroke-width=".5"/>
+              <text x="730" y="406" text-anchor="middle" fill="var(--text-muted)" font-size="8">Nike</text>
+            </g>
+
+            <!-- Food Court -->
+            <rect x="80" y="480" width="400" height="100" rx="6" class="map-zone" data-zone="food-court"/>
+            <text x="280" y="515" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="600" letter-spacing="2">FOOD COURT</text>
+            <g opacity=".4">
+              <circle cx="150" cy="545" r="6" fill="var(--orange)" opacity=".3"/>
+              <circle cx="200" cy="540" r="6" fill="var(--orange)" opacity=".3"/>
+              <circle cx="250" cy="548" r="6" fill="var(--orange)" opacity=".3"/>
+              <circle cx="300" cy="542" r="6" fill="var(--orange)" opacity=".3"/>
+              <circle cx="350" cy="545" r="6" fill="var(--orange)" opacity=".3"/>
+              <circle cx="400" cy="540" r="6" fill="var(--orange)" opacity=".3"/>
+            </g>
+
+            <!-- Parcheggio -->
+            <rect x="520" y="480" width="430" height="200" rx="6" class="map-zone" data-zone="parking"/>
+            <text x="735" y="510" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="600" letter-spacing="2">PARCHEGGIO</text>
+            <!-- Parking slots -->
+            <g opacity=".3">
+              <rect x="550" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="585" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="620" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="655" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="690" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="725" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="760" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="795" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="830" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="865" y="530" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="550" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="585" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="620" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="655" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="690" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="725" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="760" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="795" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="830" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+              <rect x="865" y="600" width="30" height="50" rx="2" fill="none" stroke="var(--text-muted)" stroke-width=".5"/>
+            </g>
+
+            <!-- Scale mobili -->
+            <rect x="350" y="330" width="20" height="30" rx="2" fill="rgba(245,158,11,.2)" stroke="var(--orange)" stroke-width="1"/>
+            <text x="360" y="368" text-anchor="middle" fill="var(--orange)" font-size="7">ESC</text>
+            <rect x="630" y="330" width="20" height="30" rx="2" fill="rgba(245,158,11,.2)" stroke="var(--orange)" stroke-width="1"/>
+            <text x="640" y="368" text-anchor="middle" fill="var(--orange)" font-size="7">ESC</text>
+
+            <!-- Security Room -->
+            <rect x="80" y="600" width="160" height="80" rx="6" fill="rgba(59,130,246,.08)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="160" y="630" text-anchor="middle" fill="var(--accent)" font-size="10" font-weight="700">SALA OPERATIVA</text>
+            <text x="160" y="648" text-anchor="middle" fill="var(--text-muted)" font-size="8">Control Room</text>
+            <circle cx="160" cy="665" r="4" fill="var(--green)"><animate attributeName="opacity" values="1;.3;1" dur="2s" repeatCount="indefinite"/></circle>
+
+            <!-- Uscite Emergenza -->
+            <rect x="50" y="330" width="25" height="25" rx="3" fill="rgba(34,197,94,.2)" stroke="var(--green)" stroke-width="1"/>
+            <text x="62" y="347" text-anchor="middle" fill="var(--green)" font-size="8" font-weight="700">E1</text>
+            <rect x="925" y="330" width="25" height="25" rx="3" fill="rgba(34,197,94,.2)" stroke="var(--green)" stroke-width="1"/>
+            <text x="937" y="347" text-anchor="middle" fill="var(--green)" font-size="8" font-weight="700">E2</text>
+            <rect x="250" y="580" width="25" height="25" rx="3" fill="rgba(34,197,94,.2)" stroke="var(--green)" stroke-width="1"/>
+            <text x="262" y="597" text-anchor="middle" fill="var(--green)" font-size="8" font-weight="700">E3</text>
+
+            <!-- Camera positions -->
+            <g id="map-cameras">
+              <!-- Piazza -->
+              <g class="map-cam" data-cam="CAM-EXT-01" transform="translate(180,80)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">EXT-01</text></g>
+              <g class="map-cam" data-cam="CAM-EXT-02" transform="translate(400,60)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">EXT-02</text></g>
+              <g class="map-cam" data-cam="CAM-EXT-03" transform="translate(600,60)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">EXT-03</text></g>
+              <g class="map-cam" data-cam="CAM-EXT-04" transform="translate(820,80)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">EXT-04</text></g>
+              <!-- Alert camera on piazza -->
+              <g class="map-cam" data-cam="CAM-EXT-07" transform="translate(500,100)">
+                <circle r="20" fill="url(#alert-glow)"><animate attributeName="r" values="15;25;15" dur="2s" repeatCount="indefinite"/></circle>
+                <circle r="8" fill="var(--red)" opacity=".3"/><circle r="5" fill="var(--red)"/>
+                <text y="18" text-anchor="middle" fill="var(--red)" font-size="7" font-weight="700">EXT-07 ⚠</text>
+              </g>
+              <!-- Gallery P0 -->
+              <g class="map-cam" data-cam="CAM-INT-01" transform="translate(150,290)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-01</text></g>
+              <g class="map-cam" data-cam="CAM-INT-02" transform="translate(300,290)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-02</text></g>
+              <g class="map-cam" data-cam="CAM-INT-03" transform="translate(500,295)"><circle r="8" fill="var(--orange)" opacity=".2"/><circle r="5" fill="var(--orange)"/><text y="18" text-anchor="middle" fill="var(--orange)" font-size="7">INT-03 !</text></g>
+              <g class="map-cam" data-cam="CAM-INT-04" transform="translate(700,290)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-04</text></g>
+              <g class="map-cam" data-cam="CAM-INT-05" transform="translate(850,290)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-05</text></g>
+              <!-- Gallery P1 -->
+              <g class="map-cam" data-cam="CAM-INT-11" transform="translate(150,410)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-11</text></g>
+              <g class="map-cam" data-cam="CAM-INT-12" transform="translate(350,410)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-12</text></g>
+              <g class="map-cam" data-cam="CAM-INT-13" transform="translate(550,410)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-13</text></g>
+              <g class="map-cam" data-cam="CAM-INT-14" transform="translate(800,410)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">INT-14</text></g>
+              <!-- Food Court -->
+              <g class="map-cam" data-cam="CAM-FC-01" transform="translate(200,530)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">FC-01</text></g>
+              <g class="map-cam" data-cam="CAM-FC-02" transform="translate(400,530)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">FC-02</text></g>
+              <!-- Parking -->
+              <g class="map-cam" data-cam="CAM-PK-01" transform="translate(600,560)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">PK-01</text></g>
+              <g class="map-cam" data-cam="CAM-PK-02" transform="translate(735,560)"><circle r="8" fill="var(--red)" opacity=".2"/><circle r="5" fill="var(--red)"/>
+                <circle r="20" fill="url(#alert-glow)"><animate attributeName="r" values="15;25;15" dur="2s" repeatCount="indefinite"/></circle>
+                <text y="18" text-anchor="middle" fill="var(--red)" font-size="7" font-weight="700">PK-02 ⚠</text>
+              </g>
+              <g class="map-cam" data-cam="CAM-PK-03" transform="translate(870,560)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">PK-03</text></g>
+              <g class="map-cam" data-cam="CAM-PK-04" transform="translate(600,640)"><circle r="8" fill="var(--green)" opacity=".2"/><circle r="5" fill="var(--green)"/><text y="18" text-anchor="middle" fill="var(--text-muted)" font-size="7">PK-04</text></g>
+              <g class="map-cam" data-cam="CAM-PK-05" transform="translate(870,640)"><circle r="8" fill="var(--orange)" opacity=".2"/><circle r="5" fill="var(--orange)"/><text y="18" text-anchor="middle" fill="var(--orange)" font-size="7">PK-05 !</text></g>
+            </g>
+
+            <!-- Guard positions -->
+            <g id="map-guards">
+              <g class="map-guard-marker" transform="translate(250,300)">
+                <circle r="12" fill="rgba(59,130,246,.15)" stroke="var(--accent)" stroke-width="1.5"/><circle r="4" fill="var(--accent)"/>
+                <text y="-16" text-anchor="middle" fill="var(--accent)" font-size="8" font-weight="600">G1 Bianchi</text>
+              </g>
+              <g class="map-guard-marker" transform="translate(700,100)">
+                <circle r="12" fill="rgba(239,68,68,.15)" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="3 1"><animate attributeName="stroke-opacity" values="1;.3;1" dur="1s" repeatCount="indefinite"/></circle>
+                <circle r="4" fill="var(--red)"/>
+                <text y="-16" text-anchor="middle" fill="var(--red)" font-size="8" font-weight="700">G3 Verdi ⚡</text>
+              </g>
+              <g class="map-guard-marker" transform="translate(750,400)">
+                <circle r="12" fill="rgba(59,130,246,.15)" stroke="var(--accent)" stroke-width="1.5"/><circle r="4" fill="var(--accent)"/>
+                <text y="-16" text-anchor="middle" fill="var(--accent)" font-size="8" font-weight="600">G2 Neri</text>
+              </g>
+              <g class="map-guard-marker" transform="translate(650,640)">
+                <circle r="12" fill="rgba(239,68,68,.15)" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="3 1"><animate attributeName="stroke-opacity" values="1;.3;1" dur="1s" repeatCount="indefinite"/></circle>
+                <circle r="4" fill="var(--red)"/>
+                <text y="-16" text-anchor="middle" fill="var(--red)" font-size="8" font-weight="700">G5 Romano ⚡</text>
+              </g>
+              <g class="map-guard-marker" transform="translate(300,530)">
+                <circle r="12" fill="rgba(34,197,94,.15)" stroke="var(--green)" stroke-width="1.5"/><circle r="4" fill="var(--green)"/>
+                <text y="-16" text-anchor="middle" fill="var(--green)" font-size="8" font-weight="600">G4 Colombo</text>
+              </g>
+              <g class="map-guard-marker" transform="translate(500,410)">
+                <circle r="12" fill="rgba(59,130,246,.15)" stroke="var(--accent)" stroke-width="1.5"/><circle r="4" fill="var(--accent)"/>
+                <text y="-16" text-anchor="middle" fill="var(--accent)" font-size="8" font-weight="600">G6 Marchetti</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="map-sidebar">
+          <div class="map-floor-selector">
+            <button class="map-floor-btn active">Tutti</button>
+            <button class="map-floor-btn">Piano 0</button>
+            <button class="map-floor-btn">Piano 1</button>
+            <button class="map-floor-btn">Parcheggio</button>
+          </div>
+          <div class="map-legend">
+            <h4>Legenda</h4>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Telecamera OK</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Telecamera - Avviso</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Telecamera - Allarme</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Guardia - Pattuglia</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red);animation:pulse-dot 2s infinite"></div>Guardia - Intervento</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Uscita Emergenza</div>
+          </div>
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px">
+            <h4 style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text-secondary)">Zone Attive</h4>
+            <div class="alert-item critical" style="margin-bottom:6px;padding:10px">
+              <div class="alert-severity critical">⚠</div>
+              <div class="alert-body">
+                <div class="alert-title" style="font-size:12px">Piazza - Aggressione</div>
+                <div class="alert-meta">CAM-EXT-07 &bull; 2 min fa</div>
+              </div>
+            </div>
+            <div class="alert-item critical" style="margin-bottom:6px;padding:10px">
+              <div class="alert-severity critical">🚗</div>
+              <div class="alert-body">
+                <div class="alert-title" style="font-size:12px">Parcheggio - Tentativo Furto</div>
+                <div class="alert-meta">CAM-PK-02 &bull; 5 min fa</div>
+              </div>
+            </div>
+            <div class="alert-item medium" style="padding:10px">
+              <div class="alert-severity medium">👁</div>
+              <div class="alert-body">
+                <div class="alert-title" style="font-size:12px">Atrio - Assembramento</div>
+                <div class="alert-meta">CAM-INT-03 &bull; 8 min fa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMERAS VIEW -->
+    <div class="view" id="view-cameras">
+      <div class="filter-bar">
+        <div class="filter-chip active" data-filter="all">Tutte (48)</div>
+        <div class="filter-chip" data-filter="alert">Con Allarme (3)</div>
+        <div class="filter-chip" data-filter="warning">Con Avviso (5)</div>
+        <div class="filter-chip" data-filter="piazza">Piazza (7)</div>
+        <div class="filter-chip" data-filter="gallery">Gallerie (18)</div>
+        <div class="filter-chip" data-filter="parking">Parcheggio (15)</div>
+        <div class="filter-chip" data-filter="food">Food Court (5)</div>
+        <div class="filter-chip" data-filter="entrance">Ingressi (3)</div>
+      </div>
+      <div class="cam-grid full" id="cameras-grid"></div>
+    </div>
+
+    <!-- ALERTS VIEW -->
+    <div class="view" id="view-alerts">
+      <div style="display:grid;grid-template-columns:1fr 400px;gap:16px;height:100%">
+        <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+          <div class="filter-bar">
+            <div class="filter-chip active" data-filter="all">Tutti</div>
+            <div class="filter-chip" data-filter="critical" style="border-color:rgba(239,68,68,.3);color:var(--red)">Critici</div>
+            <div class="filter-chip" data-filter="high" style="border-color:rgba(245,158,11,.3);color:var(--orange)">Alti</div>
+            <div class="filter-chip" data-filter="medium" style="border-color:rgba(234,179,8,.3);color:var(--yellow)">Medi</div>
+            <div class="filter-chip" data-filter="low" style="border-color:rgba(59,130,246,.3);color:var(--accent)">Bassi</div>
+          </div>
+          <div class="alert-list" id="full-alert-list" style="flex:1"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="chart-card">
+            <h3>Timeline Oggi <span>18 Mar 2026</span></h3>
+            <div class="timeline" id="alert-timeline">
+              <div class="timeline-item critical"><div class="t-time">14:30</div><div class="t-text"><strong>Aggressione rilevata</strong> - Piazza Sud, persona in fuga</div></div>
+              <div class="timeline-item critical"><div class="t-time">14:27</div><div class="t-text"><strong>Tentativo furto veicolo</strong> - Parcheggio B2, zona 7</div></div>
+              <div class="timeline-item high"><div class="t-time">14:15</div><div class="t-text"><strong>Scippo segnalato</strong> - Galleria P0, fronte H&M</div></div>
+              <div class="timeline-item medium"><div class="t-time">14:08</div><div class="t-text"><strong>Assembramento anomalo</strong> - Atrio Centrale, 35+ persone</div></div>
+              <div class="timeline-item high"><div class="t-time">13:52</div><div class="t-text"><strong>Caduta persona anziana</strong> - Galleria P1 fronte Sephora</div></div>
+              <div class="timeline-item low"><div class="t-time">13:45</div><div class="t-text"><strong>Persona stazionaria</strong> - Panchina area Food Court, >45min</div></div>
+              <div class="timeline-item medium"><div class="t-time">13:30</div><div class="t-text"><strong>Persona ricorrente</strong> - Soggetto ID#4721 visto in 3 episodi precedenti</div></div>
+              <div class="timeline-item high"><div class="t-time">13:12</div><div class="t-text"><strong>Urla rilevate (audio)</strong> - Parcheggio livello -1, zona D</div></div>
+              <div class="timeline-item low"><div class="t-time">12:55</div><div class="t-text"><strong>Rifiuti gettati a terra</strong> - Piazza esterna, fontana</div></div>
+              <div class="timeline-item medium"><div class="t-time">12:30</div><div class="t-text"><strong>Movimento sospetto</strong> - Persona si avvicina e fugge, Galleria P0</div></div>
+              <div class="timeline-item low"><div class="t-time">12:15</div><div class="t-text"><strong>Gironzolamento parcheggio</strong> - Persona ispeziona auto, zona A3</div></div>
+              <div class="timeline-item high"><div class="t-time">11:48</div><div class="t-text"><strong>Rissa (2 persone)</strong> - Food Court, intervento guardia G4</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUARDS VIEW -->
+    <div class="view" id="view-guards">
+      <div class="guards-grid">
+        <div class="guard-list-panel">
+          <div class="guard-list-header">
+            <h3>Personale di Guardiania</h3>
+            <div style="display:flex;gap:6px">
+              <span class="badge-count badge-red" style="font-size:11px">2 in intervento</span>
+              <span class="badge-count" style="background:rgba(34,197,94,.15);color:var(--green);font-size:11px">4 in servizio</span>
+            </div>
+          </div>
+          <div class="guard-list" id="guard-list"></div>
+        </div>
+        <div class="guard-list-panel">
+          <div class="guard-list-header"><h3>Dispatch & Comunicazioni</h3></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto">
+            <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius);padding:12px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="color:var(--red);font-weight:700;font-size:13px">⚡ Intervento Attivo</span><span class="fw-mono text-muted" style="font-size:10px">14:30:22</span></div>
+              <div style="font-size:12px;margin-bottom:6px"><strong>G3 Verdi</strong> inviato a Piazza Sud - Aggressione rilevata da CAM-EXT-07</div>
+              <div style="font-size:12px"><strong>G5 Romano</strong> inviato a Parcheggio B2 - Tentativo furto veicolo da CAM-PK-02</div>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-top:4px">Log Comunicazioni</div>
+            <div class="log-entry sent"><div class="time">14:31:05</div>Dispatch → G3: Conferma arrivo piazza sud, soggetto direzione nord</div>
+            <div class="log-entry received"><div class="time">14:31:22</div>G3 → Dispatch: Ricevuto, ETA 1 minuto, richiedo supporto</div>
+            <div class="log-entry emergency"><div class="time">14:30:45</div>SISTEMA: Attivato altoparlante CAM-EXT-07 - messaggio deterrente</div>
+            <div class="log-entry sent"><div class="time">14:30:15</div>Dispatch → G5: Sospetto parcheggio B2 zona 7, veicolo Volvo grigia</div>
+            <div class="log-entry received"><div class="time">14:30:38</div>G5 → Dispatch: In movimento, arrivo in 2 minuti</div>
+            <div class="log-entry sent"><div class="time">14:28:00</div>Dispatch → Tutti: Allerta generale, due incidenti simultanei</div>
+            <div class="log-entry received"><div class="time">14:15:30</div>G1 → Dispatch: Scippo galleria P0 - vittima assistita, soggetto fuggito verso uscita B</div>
+            <div class="log-entry emergency"><div class="time">14:15:10</div>SISTEMA: Contattato 112 - Carabinieri per scippo in Galleria</div>
+            <div class="log-entry sent"><div class="time">13:52:15</div>Dispatch → G2: Caduta persona anziana P1 Sephora, assistenza richiesta</div>
+            <div class="log-entry received"><div class="time">13:53:00</div>G2 → Dispatch: Sul posto, signora cosciente, richiesto 118</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS VIEW -->
+    <div class="view" id="view-analytics">
+      <div class="analytics-grid">
+        <div class="chart-card analytics-full">
+          <h3>Allarmi per Ora - Oggi <span>Aggiornato alle 14:32</span></h3>
+          <div class="chart-area"><div class="bar-chart" id="hourly-chart"></div></div>
+        </div>
+        <div class="chart-card">
+          <h3>Distribuzione per Tipo</h3>
+          <div class="chart-area">
+            <div class="donut-container">
+              <div class="donut" id="type-donut" style="background:conic-gradient(var(--red) 0deg 40deg, var(--orange) 40deg 110deg, var(--yellow) 110deg 200deg, var(--accent) 200deg 280deg, var(--cyan) 280deg 360deg)">
+                <div class="donut-center"><div class="big">247</div><div class="small">oggi</div></div>
+              </div>
+              <div class="donut-legend">
+                <div class="donut-legend-item"><div class="dot" style="background:var(--red)"></div>Aggressioni/Armi (11%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--orange)"></div>Furti/Scippi (19%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--yellow)"></div>Assembramenti (25%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--accent)"></div>Movimenti Sospetti (22%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--cyan)"></div>Stazionamento/Altro (23%)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Distribuzione per Zona</h3>
+          <div class="chart-area">
+            <div class="donut-container">
+              <div class="donut" style="background:conic-gradient(#8b5cf6 0deg 108deg, var(--accent) 108deg 194deg, var(--orange) 194deg 270deg, var(--cyan) 270deg 324deg, var(--green) 324deg 360deg)">
+                <div class="donut-center"><div class="big">48</div><div class="small">cam</div></div>
+              </div>
+              <div class="donut-legend">
+                <div class="donut-legend-item"><div class="dot" style="background:#8b5cf6"></div>Parcheggio (30%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--accent)"></div>Gallerie (24%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--orange)"></div>Piazza (21%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--cyan)"></div>Food Court (15%)</div>
+                <div class="donut-legend-item"><div class="dot" style="background:var(--green)"></div>Ingressi (10%)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMS VIEW -->
+    <div class="view" id="view-comms">
+      <div class="comms-grid">
+        <div class="comms-panel">
+          <div class="comms-header"><h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg> Altoparlanti</h3></div>
+          <div class="comms-body">
+            <div class="speaker-card"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div><div class="info"><div class="label">SPK-EXT-07 (Piazza Sud)</div><div class="sub">Attivo - Messaggio deterrente</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="speaker-card"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div><div class="info"><div class="label">SPK-PK-02 (Parcheggio B2)</div><div class="sub">Attivo - Allarme sonoro</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+            <div class="speaker-card"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div><div class="info"><div class="label">SPK-INT-01~05 (Galleria P0)</div><div class="sub">Standby</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+            <div class="speaker-card"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div><div class="info"><div class="label">SPK-INT-11~14 (Galleria P1)</div><div class="sub">Standby</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+            <div class="speaker-card"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div><div class="info"><div class="label">SPK-FC (Food Court)</div><div class="sub">Standby</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+            <div class="speaker-card"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div><div class="info"><div class="label">SPK-ALL (Tutti)</div><div class="sub">Solo emergenze</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding:12px">
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px">MESSAGGI PREIMPOSTATI</div>
+            <div class="msg-preset" style="padding:0">
+              <button class="preset-btn">🔊 Attenzione area sorvegliata</button>
+              <button class="preset-btn">🔊 Allontanarsi dal veicolo</button>
+              <button class="preset-btn">🔊 Area non accessibile</button>
+              <button class="preset-btn danger">🚨 Evacuazione generale</button>
+              <button class="preset-btn danger">🚨 Evacuazione zona</button>
+              <button class="preset-btn">📢 Chiusura centro</button>
+            </div>
+          </div>
+        </div>
+        <div class="comms-panel">
+          <div class="comms-header"><h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg> Rilevamento Audio AI</h3></div>
+          <div class="comms-body">
+            <div style="margin-bottom:16px">
+              <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px">MICROFONI ATTIVI - ANALISI IN TEMPO REALE</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                <div style="padding:10px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:3px solid var(--green)">
+                  <div style="font-size:11px;font-weight:600">MIC-EXT-07</div>
+                  <div style="font-size:10px;color:var(--text-muted)">Piazza Sud</div>
+                  <div class="audio-bars" style="margin-top:6px">
+                    <div class="audio-bar" style="--h:18px;--d:.3s"></div><div class="audio-bar" style="--h:12px;--d:.5s"></div><div class="audio-bar" style="--h:20px;--d:.4s"></div><div class="audio-bar" style="--h:8px;--d:.6s"></div><div class="audio-bar" style="--h:15px;--d:.35s"></div><div class="audio-bar" style="--h:22px;--d:.45s"></div><div class="audio-bar" style="--h:10px;--d:.55s"></div>
+                  </div>
+                  <div style="font-size:9px;color:var(--red);font-weight:600;margin-top:4px">⚠ URLA RILEVATE - 94% conf.</div>
+                </div>
+                <div style="padding:10px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:3px solid var(--green)">
+                  <div style="font-size:11px;font-weight:600">MIC-PK-02</div>
+                  <div style="font-size:10px;color:var(--text-muted)">Parcheggio B2</div>
+                  <div class="audio-bars" style="margin-top:6px">
+                    <div class="audio-bar" style="--h:6px;--d:.5s"></div><div class="audio-bar" style="--h:4px;--d:.7s"></div><div class="audio-bar" style="--h:8px;--d:.4s"></div><div class="audio-bar" style="--h:3px;--d:.6s"></div><div class="audio-bar" style="--h:5px;--d:.45s"></div><div class="audio-bar" style="--h:7px;--d:.55s"></div><div class="audio-bar" style="--h:4px;--d:.5s"></div>
+                  </div>
+                  <div style="font-size:9px;color:var(--orange);font-weight:600;margin-top:4px">⚠ VETRO ROTTO - 87% conf.</div>
+                </div>
+                <div style="padding:10px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:3px solid var(--green)">
+                  <div style="font-size:11px;font-weight:600">MIC-INT-03</div>
+                  <div style="font-size:10px;color:var(--text-muted)">Atrio Centrale</div>
+                  <div class="audio-bars" style="margin-top:6px">
+                    <div class="audio-bar" style="--h:4px;--d:.6s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:3px;--d:.8s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:5px;--d:.5s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:2px;--d:.7s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:4px;--d:.55s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:3px;--d:.65s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:2px;--d:.75s;background:var(--text-muted)"></div>
+                  </div>
+                  <div style="font-size:9px;color:var(--green);font-weight:600;margin-top:4px">✓ Normale - rumore ambiente</div>
+                </div>
+                <div style="padding:10px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:3px solid var(--green)">
+                  <div style="font-size:11px;font-weight:600">MIC-FC-01</div>
+                  <div style="font-size:10px;color:var(--text-muted)">Food Court</div>
+                  <div class="audio-bars" style="margin-top:6px">
+                    <div class="audio-bar" style="--h:5px;--d:.5s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:6px;--d:.65s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:4px;--d:.55s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:7px;--d:.45s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:3px;--d:.7s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:5px;--d:.6s;background:var(--text-muted)"></div><div class="audio-bar" style="--h:4px;--d:.5s;background:var(--text-muted)"></div>
+                  </div>
+                  <div style="font-size:9px;color:var(--green);font-weight:600;margin-top:4px">✓ Normale - chiacchierio</div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px">EVENTI AUDIO RECENTI</div>
+            <div class="log-entry emergency"><div class="time">14:30:12</div>MIC-EXT-07: <strong>Urla</strong> rilevate - attivata risposta automatica altoparlante</div>
+            <div class="log-entry emergency"><div class="time">14:28:45</div>MIC-PK-02: <strong>Vetro rotto</strong> - correlato con allarme visivo furto veicolo</div>
+            <div class="log-entry sent"><div class="time">14:15:22</div>MIC-INT-02: <strong>"Aiuto!"</strong> rilevato - confermato scippo in Galleria P0</div>
+            <div class="log-entry received"><div class="time">13:12:18</div>MIC-PK-05: <strong>Urla</strong> rilevate - livello -1 zona D, guardia inviata</div>
+          </div>
+        </div>
+        <div class="comms-panel">
+          <div class="comms-header"><h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg> Contatti Emergenza</h3></div>
+          <div class="comms-body">
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:8px">FORZE DELL'ORDINE</div>
+            <div class="contact-card"><div class="avatar" style="background:rgba(59,130,246,.15);color:var(--accent)">🚔</div><div class="info"><div class="name">Carabinieri - 112</div><div class="desc">Stazione CC più vicina: 3.2km</div></div><button class="call-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72"/></svg></button></div>
+            <div class="contact-card"><div class="avatar" style="background:rgba(59,130,246,.15);color:var(--accent)">👮</div><div class="info"><div class="name">Polizia - 113</div><div class="desc">Commissariato distrettuale</div></div><button class="call-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72"/></svg></button></div>
+            <div class="contact-card"><div class="avatar" style="background:rgba(34,197,94,.15);color:var(--green)">🚑</div><div class="info"><div class="name">Emergenza Sanitaria - 118</div><div class="desc">Ospedale più vicino: 5.1km</div></div><button class="call-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72"/></svg></button></div>
+            <div class="contact-card"><div class="avatar" style="background:rgba(239,68,68,.15);color:var(--red)">🚒</div><div class="info"><div class="name">Vigili del Fuoco - 115</div><div class="desc">Distaccamento: 4.8km</div></div><button class="call-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72"/></svg></button></div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin:12px 0 8px">GESTIONE CENTRO</div>
+            <div class="contact-card"><div class="avatar" style="background:rgba(245,158,11,.15);color:var(--orange)">👔</div><div class="info"><div class="name">Dir. Centro Commerciale</div><div class="desc">Dott. Ferrara - int. 201</div></div><button class="call-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72"/></svg></button></div>
+            <div class="contact-card"><div class="avatar" style="background:rgba(6,182,212,.15);color:var(--cyan)">🔧</div><div class="info"><div class="name">Manutenzione Tecnica</div><div class="desc">Squadra impianti - int. 305</div></div><button class="call-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72"/></svg></button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CAMERA MODAL -->
+<div class="cam-modal-bg" id="cam-modal">
+  <div class="cam-modal">
+    <div class="cam-modal-feed" id="cam-modal-feed">
+      <img id="cam-modal-img" src="" alt="Camera Feed"/>
+      <div class="cam-overlay"></div>
+      <div class="scan-line"></div>
+      <div style="position:absolute;top:12px;left:14px;font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)" id="cam-modal-id">CAM-EXT-07</div>
+      <div class="cam-rec" style="position:absolute;top:12px;right:14px;font-size:11px">● REC</div>
+      <div style="position:absolute;bottom:12px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center">
+        <span class="cam-zone" style="font-size:11px" id="cam-modal-zone">Piazza Sud</span>
+        <span class="fw-mono" style="font-size:11px;color:rgba(255,255,255,.7)" id="cam-modal-time">14:32:07</span>
+      </div>
+    </div>
+    <div class="cam-modal-sidebar">
+      <div class="cam-modal-header"><h3 id="cam-modal-title">CAM-EXT-07</h3><button class="cam-modal-close" onclick="closeCamModal()">&times;</button></div>
+      <div class="cam-modal-section">
+        <h4>Controlli Camera</h4>
+        <div class="cam-controls">
+          <button class="cam-ctrl-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>Zoom +</button>
+          <button class="cam-ctrl-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>Zoom -</button>
+          <button class="cam-ctrl-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>PTZ</button>
+          <button class="cam-ctrl-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>Snapshot</button>
+          <button class="cam-ctrl-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Registra</button>
+          <button class="cam-ctrl-btn danger"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg>Speaker</button>
+        </div>
+      </div>
+      <div class="cam-modal-section">
+        <h4>AI Detections</h4>
+        <div class="cam-detection-list" id="cam-modal-detections">
+          <div class="cam-detection"><div class="severity-dot" style="background:var(--red)"></div><span>Aggressione in corso</span><span class="det-time">14:30:22</span></div>
+          <div class="cam-detection"><div class="severity-dot" style="background:var(--red)"></div><span>Persona in fuga - 6.2 m/s</span><span class="det-time">14:30:18</span></div>
+          <div class="cam-detection"><div class="severity-dot" style="background:var(--orange)"></div><span>Urla rilevate (audio)</span><span class="det-time">14:30:12</span></div>
+          <div class="cam-detection"><div class="severity-dot" style="background:var(--yellow)"></div><span>Movimento sospetto</span><span class="det-time">14:29:45</span></div>
+        </div>
+      </div>
+      <div class="cam-modal-section" style="flex:1">
+        <h4>Info Camera</h4>
+        <div style="font-size:12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px">
+          <span class="text-muted">Modello:</span><span>4SEK AI-CAM Pro 8K</span>
+          <span class="text-muted">IP:</span><span class="fw-mono">10.0.7.107</span>
+          <span class="text-muted">Risoluzione:</span><span>7680×4320 @ 30fps</span>
+          <span class="text-muted">AI Engine:</span><span>v4.2.1 - 48 TOPS</span>
+          <span class="text-muted">Microfono:</span><span class="text-green">Attivo</span>
+          <span class="text-muted">Speaker:</span><span class="text-green">Attivo</span>
+          <span class="text-muted">Uptime:</span><span>47d 12h 33m</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INCIDENT PANEL -->
+<div class="incident-panel" id="incident-panel">
+  <div class="incident-header">
+    <div class="alert-severity critical" style="width:40px;height:40px;font-size:20px">⚠</div>
+    <div><div style="font-size:15px;font-weight:700" id="inc-title">Aggressione Rilevata</div><div style="font-size:11px;color:var(--text-muted)" id="inc-subtitle">CAM-EXT-07 - Piazza Sud</div></div>
+    <button class="close-btn" onclick="closeIncident()">&times;</button>
+  </div>
+  <div class="incident-body">
+    <img class="incident-img" id="inc-img" src="assets/img/plaza_detection.png" alt="Incident capture"/>
+    <div class="incident-field"><label>Severità</label><div class="val"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--red);margin-right:6px"></span>CRITICO</div></div>
+    <div class="incident-field"><label>Tipo Evento</label><div class="val">Aggressione - Persona colpita e aggressore in fuga</div></div>
+    <div class="incident-field"><label>Timestamp</label><div class="val fw-mono">2026-03-18 14:30:22</div></div>
+    <div class="incident-field"><label>Posizione</label><div class="val">Piazza Sud - Ingresso B, coordinate GPS 45.4321, 11.0012</div></div>
+    <div class="incident-field"><label>AI Confidence</label><div class="val">96.3%</div></div>
+    <div class="incident-field"><label>Dettagli AI</label><div class="val" style="font-size:12px;line-height:1.6">Rilevata accelerazione improvvisa di PERSONA-A (98% conf.) verso PERSONA-B. Contatto fisico registrato per 2.3s. PERSONA-A in fuga verso Nord a 6.2 m/s. Audio: urla rilevate con confidenza 94%. Altoparlante SPK-EXT-07 attivato automaticamente.</div></div>
+    <div class="incident-field"><label>Soggetto Tracciato</label><div class="val">ID Temporaneo: #TRK-8834 — Maschio, ~180cm, giacca scura, jeans</div></div>
+    <div class="incident-field"><label>Azioni Automatiche</label><div class="val" style="font-size:12px;line-height:1.6">✓ Altoparlante attivato<br>✓ Guardia G3 Verdi allertata<br>✓ Snapshot HD salvato<br>✓ Registrazione prioritaria avviata<br>✓ Tracking soggetto su camere adiacenti</div></div>
+    <div class="incident-field"><label>Guardia Assegnata</label><div class="val">G3 - Alessandro Verdi (ETA: 1 min)</div></div>
+  </div>
+  <div class="incident-actions">
+    <button class="inc-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Camera</button>
+    <button class="inc-btn primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07"/></svg>Chiama 112</button>
+    <button class="inc-btn danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Escalation</button>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────
+const CAMERAS = [
+  {id:'CAM-EXT-01',zone:'Piazza Nord-Ovest',area:'piazza',img:'assets/img/main_hall.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-EXT-02',zone:'Piazza Nord',area:'piazza',img:'assets/img/atrium_top.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-EXT-03',zone:'Piazza Centro',area:'piazza',img:'assets/img/escalators.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-EXT-04',zone:'Piazza Nord-Est',area:'piazza',img:'assets/img/gallery_wide.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-EXT-05',zone:'Piazza Sud-Ovest',area:'piazza',img:'assets/img/entrance_area.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-EXT-06',zone:'Piazza Sud-Est',area:'piazza',img:'assets/img/gallery_shops.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-EXT-07',zone:'Piazza Sud',area:'piazza',img:'assets/img/plaza_detection.png',status:'alert',ai:'danger',aiLabel:'AGGRESSIONE'},
+  {id:'CAM-INT-01',zone:'Galleria P0 - Ovest',area:'gallery',img:'assets/img/gallery_entrance.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-02',zone:'Galleria P0 - Centro',area:'gallery',img:'assets/img/central_rotunda.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-03',zone:'Atrio Centrale',area:'gallery',img:'assets/img/gallery_heatmap.png',status:'warning',ai:'warn',aiLabel:'ASSEMBRAMENTO'},
+  {id:'CAM-INT-04',zone:'Galleria P0 - Est',area:'gallery',img:'assets/img/gallery_side.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-05',zone:'Galleria P0 - Ingresso A',area:'entrance',img:'assets/img/gallery_shops.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-06',zone:'Galleria P0 - Ingresso B',area:'entrance',img:'assets/img/entrance_area.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-07',zone:'Galleria P0 - Ingresso C',area:'entrance',img:'assets/img/gallery_wide.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-08',zone:'Galleria P0 - Scale A',area:'gallery',img:'assets/img/escalators.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-09',zone:'Galleria P0 - Scale B',area:'gallery',img:'assets/img/atrium_palms.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-11',zone:'Galleria P1 - Ovest',area:'gallery',img:'assets/img/upper_level.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-12',zone:'Galleria P1 - Centro',area:'gallery',img:'assets/img/atrium_top.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-INT-13',zone:'Galleria P1 - Est',area:'gallery',img:'assets/img/gallery_entrance.jpg',status:'warning',ai:'warn',aiLabel:'MOV. SOSPETTO'},
+  {id:'CAM-INT-14',zone:'Galleria P1 - Balconata',area:'gallery',img:'assets/img/food_court.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-FC-01',zone:'Food Court - Ovest',area:'food',img:'assets/img/food_court.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-FC-02',zone:'Food Court - Est',area:'food',img:'assets/img/main_hall.jpg',status:'ok',ai:'clear'},
+  {id:'CAM-FC-03',zone:'Food Court - Centro',area:'food',img:'assets/img/gallery_wide.jpg',status:'warning',ai:'warn',aiLabel:'STAZIONAMENTO'},
+  {id:'CAM-PK-01',zone:'Parcheggio A - Livello 0',area:'parking',img:'assets/img/parking_cameras.png',status:'ok',ai:'clear'},
+  {id:'CAM-PK-02',zone:'Parcheggio B2 - Zona 7',area:'parking',img:'assets/img/parking_detection.png',status:'alert',ai:'danger',aiLabel:'FURTO VEICOLO'},
+  {id:'CAM-PK-03',zone:'Parcheggio A - Livello -1',area:'parking',img:'assets/img/parking_cameras.png',status:'ok',ai:'clear'},
+  {id:'CAM-PK-04',zone:'Parcheggio B - Livello 0',area:'parking',img:'assets/img/parking_cameras.png',status:'ok',ai:'clear'},
+  {id:'CAM-PK-05',zone:'Parcheggio B - Livello -1',area:'parking',img:'assets/img/parking_cameras.png',status:'warning',ai:'warn',aiLabel:'GIRONZOLAM.'},
+  {id:'CAM-PK-06',zone:'Parcheggio C - Livello 0',area:'parking',img:'assets/img/parking_cameras.png',status:'ok',ai:'clear'},
+  {id:'CAM-PK-07',zone:'Parcheggio C - Livello -1',area:'parking',img:'assets/img/parking_cameras.png',status:'ok',ai:'clear'},
+  {id:'CAM-PK-08',zone:'Parcheggio - Rampa A',area:'parking',img:'assets/img/parking_cameras.png',status:'ok',ai:'clear'},
+  {id:'CAM-PK-09',zone:'Parcheggio - Rampa B',area:'parking',img:'assets/img/parking_cameras.png',status:'ok',ai:'clear'},
+];
+
+const ALERTS = [
+  {id:1,severity:'critical',icon:'⚠',title:'Aggressione in Piazza Sud',desc:'Persona colpita, aggressore in fuga verso Nord',cam:'CAM-EXT-07',time:'14:30',zone:'Piazza',img:'assets/img/plaza_detection.png'},
+  {id:2,severity:'critical',icon:'🚗',title:'Tentativo furto veicolo',desc:'Soggetto tenta effrazione su Volvo grigia, zona B2',cam:'CAM-PK-02',time:'14:27',zone:'Parcheggio',img:'assets/img/parking_detection.png'},
+  {id:3,severity:'high',icon:'👜',title:'Scippo in Galleria P0',desc:'Borsa strappata a donna, soggetto fuggito verso uscita B',cam:'CAM-INT-02',time:'14:15',zone:'Galleria P0',img:'assets/img/gallery_entrance.jpg'},
+  {id:4,severity:'medium',icon:'👥',title:'Assembramento anomalo Atrio',desc:'35+ persone, densità 0.28 p/m² - sopra soglia',cam:'CAM-INT-03',time:'14:08',zone:'Atrio Centrale',img:'assets/img/gallery_heatmap.png'},
+  {id:5,severity:'high',icon:'🤕',title:'Caduta persona anziana',desc:'Donna anziana caduta, rimane a terra, possibile infortunio',cam:'CAM-INT-13',time:'13:52',zone:'Galleria P1',img:'assets/img/upper_level.jpg'},
+  {id:6,severity:'low',icon:'🛋',title:'Persona stazionaria prolungata',desc:'Soggetto fermo su panchina da >45min, possibile dormiente',cam:'CAM-FC-03',time:'13:45',zone:'Food Court',img:'assets/img/food_court.jpg'},
+  {id:7,severity:'medium',icon:'👤',title:'Persona ricorrente rilevata',desc:'ID#4721 presente in 3 episodi precedenti (furti/scippi)',cam:'CAM-INT-04',time:'13:30',zone:'Galleria P0',img:'assets/img/central_rotunda.jpg'},
+  {id:8,severity:'high',icon:'🔊',title:'Urla rilevate (Audio AI)',desc:'Richiesta d\'aiuto rilevata, livello -1 zona D parcheggio',cam:'CAM-PK-05',time:'13:12',zone:'Parcheggio',img:'assets/img/parking_cameras.png'},
+  {id:9,severity:'low',icon:'🗑',title:'Rifiuti gettati a terra',desc:'Persona getta rifiuti nell\'area fontana piazza',cam:'CAM-EXT-03',time:'12:55',zone:'Piazza',img:'assets/img/atrium_top.jpg'},
+  {id:10,severity:'medium',icon:'🏃',title:'Movimento sospetto',desc:'Persona si avvicina ad altra, breve contatto, fugge rapidamente',cam:'CAM-INT-13',time:'12:30',zone:'Galleria P1',img:'assets/img/gallery_entrance.jpg'},
+  {id:11,severity:'low',icon:'🚶',title:'Gironzolamento parcheggio',desc:'Soggetto ispeziona veicoli in zona A3 da 12 minuti',cam:'CAM-PK-05',time:'12:15',zone:'Parcheggio',img:'assets/img/parking_cameras.png'},
+  {id:12,severity:'high',icon:'🤜',title:'Rissa - 2 persone',desc:'Colluttazione tra due soggetti, area ristoro',cam:'CAM-FC-01',time:'11:48',zone:'Food Court',img:'assets/img/food_court.jpg'},
+  {id:13,severity:'medium',icon:'🔪',title:'Oggetto sospetto rilevato',desc:'AI rileva possibile arma da taglio su soggetto',cam:'CAM-INT-01',time:'11:20',zone:'Galleria P0',img:'assets/img/gallery_side.jpg'},
+  {id:14,severity:'low',icon:'💥',title:'Danno a proprietà',desc:'Soggetto danneggia pannello informativo parcheggio',cam:'CAM-PK-03',time:'10:45',zone:'Parcheggio',img:'assets/img/parking_cameras.png'},
+];
+
+const GUARDS = [
+  {id:'G1',name:'Marco Bianchi',role:'Capo Squadra',status:'patrol',zone:'Galleria P0 - Ovest',avatar:'MB',color:'#3b82f6',phone:'int.101'},
+  {id:'G2',name:'Luca Neri',role:'Agente',status:'patrol',zone:'Galleria P1 - Est',avatar:'LN',color:'#8b5cf6',phone:'int.102'},
+  {id:'G3',name:'Alessandro Verdi',role:'Agente Senior',status:'responding',zone:'→ Piazza Sud (Aggressione)',avatar:'AV',color:'#ef4444',phone:'int.103'},
+  {id:'G4',name:'Sara Colombo',role:'Agente',status:'standby',zone:'Food Court - Punto fisso',avatar:'SC',color:'#22c55e',phone:'int.104'},
+  {id:'G5',name:'Davide Romano',role:'Agente',status:'responding',zone:'→ Parcheggio B2 (Furto)',avatar:'DR',color:'#ef4444',phone:'int.105'},
+  {id:'G6',name:'Elena Marchetti',role:'Agente',status:'patrol',zone:'Galleria P1 - Centro',avatar:'EM',color:'#06b6d4',phone:'int.106'},
+  {id:'G7',name:'Paolo Santini',role:'Agente',status:'break',zone:'Pausa - Sala operativa',avatar:'PS',color:'#eab308',phone:'int.107'},
+  {id:'G8',name:'Giulia Ferri',role:'Agente',status:'break',zone:'Fuori servizio dalle 15:00',avatar:'GF',color:'#5a6a8a',phone:'int.108'},
+];
+
+// ─── FUNCTIONS ───────────────────────────────────────────
+function switchView(viewId){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn[data-view]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+viewId).classList.add('active');
+  const btn=document.querySelector(`.nav-btn[data-view="${viewId}"]`);
+  if(btn)btn.classList.add('active');
+}
+
+function renderCamCell(cam,showAi=true){
+  const alertClass=cam.status==='alert'?'alert-active':cam.status==='warning'?'alert-warning':'';
+  const aiTag=cam.ai==='danger'?`<span class="cam-ai-tag danger">${cam.aiLabel||'ALLARME'}</span>`:
+    cam.ai==='warn'?`<span class="cam-ai-tag warn">${cam.aiLabel||'AVVISO'}</span>`:
+    `<span class="cam-ai-tag ok">AI OK</span>`;
+  return `<div class="cam-cell ${alertClass}" onclick="openCamModal('${cam.id}')">
+    <img src="${cam.img}" alt="${cam.id}" loading="lazy"/>
+    <div class="cam-overlay"></div>
+    <div class="scan-line"></div>
+    <div class="cam-id">${cam.id}</div>
+    <div class="cam-rec">● REC</div>
+    <div class="cam-status"><span class="cam-zone">${cam.zone}</span>${showAi?aiTag:''}</div>
+  </div>`;
+}
+
+function renderAlertItem(a){
+  return `<div class="alert-item ${a.severity}" onclick="openIncident(${a.id})">
+    <div class="alert-severity ${a.severity}">${a.icon}</div>
+    <div class="alert-body">
+      <div class="alert-title">${a.title}</div>
+      <div class="alert-meta"><span>${a.cam}</span>&bull;<span>${a.zone}</span></div>
+    </div>
+    <div class="alert-time">${a.time}</div>
+  </div>`;
+}
+
+function renderGuardCard(g){
+  const statusLabel={patrol:'Pattuglia',standby:'Punto Fisso',responding:'In Intervento',break:'Pausa'}[g.status];
+  return `<div class="guard-card">
+    <div class="guard-avatar" style="background:${g.color}20;color:${g.color}">
+      <div class="status-ring" style="border-color:${g.color}"></div>${g.avatar}
+    </div>
+    <div class="guard-info"><div class="guard-name">${g.name}</div><div class="guard-detail">${g.role} &bull; ${g.zone}</div></div>
+    <span class="guard-status-tag ${g.status}">${statusLabel}</span>
+  </div>`;
+}
+
+// Dashboard camera grid - show first 9 with priority to alerts
+function renderDashCams(){
+  const sorted=[...CAMERAS].sort((a,b)=>{
+    const p={alert:0,warning:1,ok:2};return(p[a.status]||2)-(p[b.status]||2);
+  });
+  document.getElementById('dash-cam-grid').innerHTML=sorted.slice(0,9).map(c=>renderCamCell(c)).join('');
+}
+
+function renderFullCams(filter='all'){
+  let filtered=CAMERAS;
+  if(filter==='alert')filtered=CAMERAS.filter(c=>c.status==='alert');
+  else if(filter==='warning')filtered=CAMERAS.filter(c=>c.status==='warning');
+  else if(filter!=='all')filtered=CAMERAS.filter(c=>c.area===filter);
+  document.getElementById('cameras-grid').innerHTML=filtered.map(c=>renderCamCell(c)).join('');
+}
+
+function renderDashAlerts(){
+  const el=document.getElementById('dash-alert-list');
+  el.innerHTML=ALERTS.slice(0,8).map(renderAlertItem).join('');
+  document.getElementById('dash-alert-count').textContent=`(${ALERTS.length})`;
+}
+
+function renderFullAlerts(filter='all'){
+  let filtered=ALERTS;
+  if(filter!=='all')filtered=ALERTS.filter(a=>a.severity===filter);
+  document.getElementById('full-alert-list').innerHTML=filtered.map(renderAlertItem).join('');
+}
+
+function renderGuards(){
+  document.getElementById('guard-list').innerHTML=GUARDS.map(renderGuardCard).join('');
+}
+
+// Camera modal
+function openCamModal(camId){
+  const cam=CAMERAS.find(c=>c.id===camId);
+  if(!cam)return;
+  document.getElementById('cam-modal-img').src=cam.img;
+  document.getElementById('cam-modal-id').textContent=cam.id;
+  document.getElementById('cam-modal-title').textContent=cam.id+' — '+cam.zone;
+  document.getElementById('cam-modal-zone').textContent=cam.zone;
+  document.getElementById('cam-modal').classList.add('open');
+}
+function closeCamModal(){document.getElementById('cam-modal').classList.remove('open')}
+
+// Incident panel
+function openIncident(alertId){
+  const a=ALERTS.find(x=>x.id===alertId);
+  if(!a)return;
+  document.getElementById('inc-title').textContent=a.title;
+  document.getElementById('inc-subtitle').textContent=a.cam+' — '+a.zone;
+  document.getElementById('inc-img').src=a.img;
+  document.getElementById('incident-panel').classList.add('open');
+}
+function closeIncident(){document.getElementById('incident-panel').classList.remove('open')}
+
+// Clock
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const cam_time=document.getElementById('cam-modal-time');
+  if(cam_time)cam_time.textContent=now.toLocaleTimeString('it-IT');
+}
+
+// Hourly chart
+function renderHourlyChart(){
+  const data=[2,5,3,8,12,15,18,22,28,35,30,24,19,27,32];
+  const hours=['00','02','04','06','08','09','10','11','12','13','14','14:30','NOW'];
+  const max=Math.max(...data);
+  const chart=document.getElementById('hourly-chart');
+  if(!chart)return;
+  chart.innerHTML=data.map((v,i)=>{
+    const h=(v/max)*180;
+    const color=v>28?'var(--red)':v>20?'var(--orange)':v>10?'var(--yellow)':'var(--accent)';
+    return `<div class="bar-col"><div class="bar-val">${v}</div><div class="bar" style="height:${h}px;background:${color}"></div><div class="bar-label">${hours[i]||''}</div></div>`;
+  }).join('');
+}
+
+// Toast notification
+function showToast(severity,title,desc){
+  const container=document.getElementById('toast-container');
+  const icons={critical:'⚠',high:'⚡',medium:'👁',low:'ℹ'};
+  const toast=document.createElement('div');
+  toast.className=`toast ${severity}`;
+  toast.innerHTML=`<div class="sev-icon">${icons[severity]||'ℹ'}</div><div class="t-body"><div class="t-title">${title}</div><div class="t-desc">${desc}</div></div><div class="t-time">ora</div>`;
+  toast.onclick=()=>{toast.classList.add('leaving');setTimeout(()=>toast.remove(),300)};
+  container.appendChild(toast);
+  setTimeout(()=>{if(toast.parentNode){toast.classList.add('leaving');setTimeout(()=>toast.remove(),300)}},6000);
+}
+
+// Simulate live alerts
+const SIM_ALERTS=[
+  {severity:'medium',title:'Assembramento in crescita',desc:'Atrio Centrale - 42 persone'},
+  {severity:'low',title:'Persona sospetta parcheggio',desc:'CAM-PK-06 - Soggetto ispeziona auto'},
+  {severity:'high',title:'Audio: richiesta aiuto',desc:'MIC-INT-05 - Galleria P0 Est'},
+  {severity:'medium',title:'Soggetto ricorrente rilevato',desc:'ID#4721 ricompare - CAM-INT-01'},
+  {severity:'low',title:'Stazionamento prolungato',desc:'Ingresso A - Persona ferma >30min'},
+  {severity:'critical',title:'Possibile arma rilevata',desc:'CAM-INT-12 - Oggetto metallico'},
+  {severity:'high',title:'Rissa in corso',desc:'CAM-FC-02 - Food Court Est'},
+  {severity:'medium',title:'Fuga improvvisa rilevata',desc:'CAM-EXT-02 - Persona corre a 7m/s'},
+];
+let simIdx=0;
+function simulateAlert(){
+  const a=SIM_ALERTS[simIdx%SIM_ALERTS.length];
+  showToast(a.severity,a.title,a.desc);
+  simIdx++;
+}
+
+// Filter chips
+document.addEventListener('click',e=>{
+  const chip=e.target.closest('.filter-chip');
+  if(!chip)return;
+  const parent=chip.parentElement;
+  parent.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  const filter=chip.dataset.filter;
+  // Determine context
+  if(parent.closest('#view-cameras')){renderFullCams(filter)}
+  else if(parent.closest('#view-alerts')){renderFullAlerts(filter)}
+});
+
+// Nav buttons
+document.querySelectorAll('.nav-btn[data-view]').forEach(btn=>{
+  btn.addEventListener('click',()=>switchView(btn.dataset.view));
+});
+
+// Close modal on bg click
+document.getElementById('cam-modal').addEventListener('click',e=>{
+  if(e.target.id==='cam-modal')closeCamModal();
+});
+
+// Emergency button
+document.getElementById('btn-emergency').addEventListener('click',()=>{
+  if(confirm('ATTENZIONE: Attivare protocollo di EMERGENZA GENERALE?\n\nQuesto attiverà:\n- Allarme sonoro in tutto il centro\n- Notifica a tutte le guardie\n- Chiamata automatica 112/118/115\n- Apertura uscite di emergenza\n- Messaggio evacuazione su tutti gli altoparlanti')){
+    showToast('critical','EMERGENZA GENERALE ATTIVATA','Protocollo evacuazione in corso');
+  }
+});
+
+// Map floor selector
+document.querySelectorAll('.map-floor-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.map-floor-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ─── INIT ────────────────────────────────────────────────
+renderDashCams();
+renderDashAlerts();
+renderFullCams();
+renderFullAlerts();
+renderGuards();
+renderHourlyChart();
+updateClock();
+setInterval(updateClock,1000);
+setInterval(simulateAlert,12000);
+// First toast after 4s
+setTimeout(()=>simulateAlert(),4000);
+</script>
+</body>
+</html>

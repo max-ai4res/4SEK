@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>4SEK Guard | App Mobile</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05080f;--bg2:#0c1220;--bg3:#131d33;--bg4:#1a2744;
+  --border:#1e2e4a;--border-l:#2a3f66;
+  --text:#e8ecf4;--text2:#8b9cc0;--text3:#5a6a8a;
+  --accent:#3b82f6;--accent-g:rgba(59,130,246,.25);
+  --red:#ef4444;--red-g:rgba(239,68,68,.2);
+  --orange:#f59e0b;--orange-g:rgba(245,158,11,.2);
+  --yellow:#eab308;--green:#22c55e;--green-g:rgba(34,197,94,.15);
+  --cyan:#06b6d4;--purple:#8b5cf6;
+  --r:14px;--rs:8px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:#111;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* ─── SHOWCASE LAYOUT ─────────────────────────────────── */
+.showcase{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#080c15 0%,#0f1628 50%,#0a0e1a 100%);gap:60px;padding:40px;overflow-x:auto}
+.showcase-title{position:fixed;top:30px;left:50%;transform:translateX(-50%);text-align:center;z-index:10}
+.showcase-title h1{font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px}
+.showcase-title p{font-size:13px;color:var(--text3);margin-top:4px;letter-spacing:2px;text-transform:uppercase}
+.phone-labels{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:60px;z-index:10}
+.phone-label{width:375px;text-align:center;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:1px;text-transform:uppercase}
+
+/* ─── PHONE FRAME ─────────────────────────────────────── */
+.phone{width:375px;height:812px;border-radius:44px;background:var(--bg);border:3px solid #222;box-shadow:0 0 0 1px #000,0 25px 80px rgba(0,0,0,.6),0 0 60px rgba(59,130,246,.08);position:relative;overflow:hidden;flex-shrink:0}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:28px;background:#000;border-radius:0 0 18px 18px;z-index:200}
+.phone::after{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:80px;height:6px;background:#1a1a1a;border-radius:3px;z-index:201}
+
+/* ─── APP CONTAINER ───────────────────────────────────── */
+.app{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ─── STATUS BAR ──────────────────────────────────────── */
+.status-bar{height:50px;padding:14px 24px 0;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;z-index:100;flex-shrink:0}
+.status-bar .time{font-weight:700}
+.status-bar .icons{display:flex;gap:5px;align-items:center}
+.status-bar .icons svg{width:15px;height:15px}
+
+/* ─── APP HEADER ──────────────────────────────────────── */
+.app-header{padding:4px 20px 12px;flex-shrink:0}
+.app-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.app-header h1{font-size:22px;font-weight:800;letter-spacing:.5px}
+.app-header .subtitle{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.header-actions{display:flex;gap:8px}
+.header-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.header-btn .dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--bg3)}
+
+/* ─── SCROLLABLE CONTENT ──────────────────────────────── */
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px}
+.scroll-content::-webkit-scrollbar{display:none}
+
+/* ─── TAB BAR ─────────────────────────────────────────── */
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:85px;background:linear-gradient(180deg,transparent,var(--bg) 20%);padding:0 8px;display:flex;align-items:flex-end;padding-bottom:20px;z-index:100}
+.tab-bar-inner{display:flex;width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px;gap:2px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0;border-radius:14px;color:var(--text3);font-size:9px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:all .2s;gap:3px}
+.tab svg{width:20px;height:20px;transition:all .2s}
+.tab.active{background:rgba(59,130,246,.12);color:var(--accent)}
+.tab .tab-badge{position:absolute;top:-2px;right:-2px;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:var(--red);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tab-icon{position:relative}
+.sos-tab{background:linear-gradient(135deg,var(--red),#dc2626)!important;color:#fff!important}
+.sos-tab svg{color:#fff}
+
+/* ─── SECTION ─────────────────────────────────────────── */
+.section{padding:0 20px;margin-bottom:20px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-head h2{font-size:15px;font-weight:700}
+.section-head .more{font-size:11px;color:var(--accent);font-weight:600;cursor:pointer}
+
+/* ─── ALERT BANNER ────────────────────────────────────── */
+.alert-banner{margin:0 20px 16px;padding:14px 16px;border-radius:var(--r);position:relative;overflow:hidden;cursor:pointer}
+.alert-banner.critical{background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(239,68,68,.05));border:1px solid rgba(239,68,68,.3)}
+.alert-banner.critical::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red)}
+.alert-banner .ab-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.alert-banner .ab-severity{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px}
+.alert-banner.critical .ab-severity{background:var(--red);color:#fff}
+.alert-banner .ab-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:auto}
+.alert-banner .ab-title{font-size:14px;font-weight:700;margin-bottom:2px}
+.alert-banner .ab-desc{font-size:12px;color:var(--text2);line-height:1.4}
+.alert-banner .ab-actions{display:flex;gap:8px;margin-top:10px}
+.alert-banner .ab-btn{padding:8px 14px;border-radius:var(--rs);border:none;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px}
+.ab-btn.primary{background:var(--accent);color:#fff}
+.ab-btn.outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.ab-btn.danger{background:var(--red);color:#fff}
+@keyframes alert-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 8px rgba(239,68,68,0)}}
+.alert-banner.critical{animation:alert-pulse 2.5s infinite}
+
+/* ─── QUICK STATS ─────────────────────────────────────── */
+.quick-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 20px;margin-bottom:16px}
+.qs-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;position:relative;overflow:hidden}
+.qs-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.qs-card.red::after{background:var(--red)}.qs-card.orange::after{background:var(--orange)}.qs-card.green::after{background:var(--green)}
+.qs-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;line-height:1}
+.qs-label{font-size:10px;color:var(--text3);margin-top:4px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+
+/* ─── CAMERA PREVIEW ──────────────────────────────────── */
+.cam-scroll{display:flex;gap:10px;padding:0 20px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+.cam-scroll::-webkit-scrollbar{display:none}
+.cam-card{flex-shrink:0;width:260px;height:170px;border-radius:var(--r);overflow:hidden;position:relative;scroll-snap-align:start;cursor:pointer;border:2px solid transparent;transition:border-color .3s}
+.cam-card.alert{border-color:var(--red);animation:cam-alert 2s infinite}
+.cam-card.warn{border-color:var(--orange)}
+@keyframes cam-alert{0%,100%{border-color:var(--red);box-shadow:0 0 15px var(--red-g)}50%{border-color:rgba(239,68,68,.3);box-shadow:none}}
+.cam-card img{width:100%;height:100%;object-fit:cover;filter:brightness(.8)}
+.cam-card .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,transparent 35%,transparent 55%,rgba(0,0,0,.7) 100%)}
+.cam-card .cam-label{position:absolute;top:10px;left:10px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.cam-card .cam-zone-l{position:absolute;bottom:10px;left:10px;font-size:10px;font-weight:500;color:rgba(255,255,255,.8)}
+.cam-card .cam-tag{position:absolute;bottom:10px;right:10px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px}
+.cam-tag.ok{background:rgba(34,197,94,.25);color:var(--green)}
+.cam-tag.warn{background:rgba(245,158,11,.25);color:var(--orange)}
+.cam-tag.danger{background:rgba(239,68,68,.25);color:var(--red)}
+.cam-card .rec{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:var(--red)}
+.cam-card .rec::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.cam-card .scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.5),transparent);animation:scanm 3s linear infinite}
+@keyframes scanm{from{top:0}to{top:100%}}
+
+/* ─── ALERT LIST (mobile) ─────────────────────────────── */
+.m-alert{display:flex;gap:10px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;position:relative;overflow:hidden;transition:all .2s}
+.m-alert:active{transform:scale(.98);background:var(--bg4)}
+.m-alert::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.m-alert.critical::before{background:var(--red)}
+.m-alert.high::before{background:var(--orange)}
+.m-alert.medium::before{background:var(--yellow)}
+.m-alert.low::before{background:var(--accent)}
+.m-alert-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.m-alert-icon.critical{background:var(--red-g);color:var(--red)}
+.m-alert-icon.high{background:var(--orange-g);color:var(--orange)}
+.m-alert-icon.medium{background:rgba(234,179,8,.15);color:var(--yellow)}
+.m-alert-icon.low{background:var(--accent-g);color:var(--accent)}
+.m-alert-body{flex:1;min-width:0}
+.m-alert-title{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-alert-meta{font-size:11px;color:var(--text3)}
+.m-alert-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);align-self:flex-start;flex-shrink:0}
+.m-alert-chevron{color:var(--text3);align-self:center;flex-shrink:0}
+
+/* ─── GUARD POSITION CARD ─────────────────────────────── */
+.my-position{margin:0 20px 16px;padding:14px;background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(6,182,212,.05));border:1px solid rgba(59,130,246,.2);border-radius:var(--r)}
+.my-position .mp-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.my-position .mp-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.my-position .mp-info h3{font-size:14px;font-weight:700}
+.my-position .mp-info p{font-size:11px;color:var(--text2)}
+.my-position .mp-status{margin-left:auto;padding:4px 10px;border-radius:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.mp-status.patrol{background:var(--green-g);color:var(--green)}
+.mp-status.responding{background:var(--red-g);color:var(--red);animation:blink 2s infinite}
+.my-position .mp-location{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.my-position .mp-location svg{width:14px;height:14px;color:var(--accent);flex-shrink:0}
+
+/* ─── TASK CARD ───────────────────────────────────────── */
+.task-card{padding:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px}
+.task-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.task-priority{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.task-title{font-size:13px;font-weight:600;flex:1}
+.task-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.task-desc{font-size:11px;color:var(--text2);line-height:1.4;margin-bottom:8px}
+.task-footer{display:flex;gap:6px}
+.task-btn{padding:7px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s}
+.task-btn:active{transform:scale(.96)}
+.task-btn.accept{background:var(--green);border-color:var(--green);color:#fff}
+.task-btn.reject{border-color:rgba(239,68,68,.3);color:var(--red)}
+
+/* ─── DETAIL SCREEN ───────────────────────────────────── */
+.detail-screen{position:absolute;inset:0;background:var(--bg);z-index:300;transform:translateX(100%);transition:transform .3s ease;display:flex;flex-direction:column}
+.detail-screen.open{transform:translateX(0)}
+.detail-nav{height:50px;padding:14px 20px 0;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.detail-nav .back-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+.detail-nav h2{font-size:16px;font-weight:700;flex:1}
+.detail-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:30px}
+.detail-body::-webkit-scrollbar{display:none}
+.detail-img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:0}
+.detail-img-wrapper{position:relative;margin:12px 20px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.detail-img-wrapper img{width:100%;display:block}
+.detail-img-wrapper .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.4) 0%,transparent 40%,transparent 60%,rgba(0,0,0,.5) 100%)}
+.detail-img-wrapper .scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.5),transparent);animation:scanm 3s linear infinite}
+.detail-section{padding:0 20px;margin-bottom:16px}
+.detail-section h3{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.detail-field{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.detail-field .label{color:var(--text3)}
+.detail-field .value{font-weight:600;text-align:right;max-width:60%}
+.detail-actions{display:flex;gap:8px;padding:16px 20px}
+.detail-action-btn{flex:1;padding:14px;border-radius:var(--r);border:none;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.detail-action-btn.primary{background:var(--accent);color:#fff}
+.detail-action-btn.danger{background:var(--red);color:#fff}
+.detail-action-btn.outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+
+/* ─── MAP (Mobile) ────────────────────────────────────── */
+.m-map{margin:0 20px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);background:var(--bg3);height:280px;position:relative}
+.m-map svg{width:100%;height:100%}
+.m-map .you-marker{animation:you-ping 2s infinite}
+@keyframes you-ping{0%{r:8;opacity:1}100%{r:20;opacity:0}}
+
+/* ─── COMMS SECTION ───────────────────────────────────── */
+.comm-card{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:all .2s}
+.comm-card:active{transform:scale(.98)}
+.comm-card .c-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.comm-card .c-info{flex:1}
+.comm-card .c-name{font-size:13px;font-weight:600}
+.comm-card .c-sub{font-size:11px;color:var(--text3)}
+.comm-card .c-action{width:36px;height:36px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.c-action.call{background:var(--green);color:#fff}
+.c-action.radio{background:var(--accent);color:#fff}
+
+/* ─── REPORT FORM ─────────────────────────────────────── */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.form-input{width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:inherit}
+.form-input:focus{outline:none;border-color:var(--accent)}
+.form-select{width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:inherit;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%235a6a8a' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.form-textarea{width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:inherit;min-height:80px;resize:none}
+.form-textarea:focus,.form-select:focus{outline:none;border-color:var(--accent)}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.photo-slot{aspect-ratio:1;border-radius:var(--rs);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:24px;cursor:pointer;transition:all .2s}
+.photo-slot:active{background:var(--bg4)}
+.photo-slot.has-photo{border:none;overflow:hidden}
+.photo-slot.has-photo img{width:100%;height:100%;object-fit:cover}
+
+/* ─── AUDIO BARS ──────────────────────────────────────── */
+.m-audio-bars{display:flex;align-items:flex-end;gap:2px;height:20px}
+.m-audio-bar{width:3px;background:var(--green);border-radius:1px;animation:aud var(--d,.5s) ease-in-out infinite alternate}
+@keyframes aud{from{height:2px}to{height:var(--h,16px)}}
+
+/* ─── PTT BUTTON ──────────────────────────────────────── */
+.ptt-container{padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.ptt-btn{width:120px;height:120px;border-radius:50%;background:linear-gradient(145deg,var(--bg4),var(--bg3));border:3px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.ptt-btn:active{transform:scale(.92);background:linear-gradient(145deg,var(--accent),#2563eb);border-color:var(--accent);box-shadow:0 0 30px var(--accent-g)}
+.ptt-btn svg{width:40px;height:40px;color:var(--text2);transition:color .15s}
+.ptt-btn:active svg{color:#fff}
+.ptt-label{font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.ptt-channel{font-size:13px;font-weight:700;color:var(--accent)}
+
+/* ─── CHECKLIST ───────────────────────────────────────── */
+.check-item{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;cursor:pointer;transition:all .2s}
+.check-item:active{background:var(--bg4)}
+.check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.check-item.done .check-box{background:var(--green);border-color:var(--green)}
+.check-item.done .check-box::after{content:'✓';color:#fff;font-size:13px;font-weight:700}
+.check-item.done .check-text{text-decoration:line-through;color:var(--text3)}
+.check-text{font-size:13px;font-weight:500;flex:1}
+.check-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+
+/* ─── UTILITY ─────────────────────────────────────────── */
+.mono{font-family:'JetBrains Mono',monospace}
+.text-red{color:var(--red)}.text-orange{color:var(--orange)}.text-green{color:var(--green)}.text-blue{color:var(--accent)}.text-cyan{color:var(--cyan)}
+.sep{height:1px;background:var(--border);margin:12px 20px}
+</style>
+</head>
+<body>
+<div class="showcase">
+<div class="showcase-title"><h1>4SEK Guard</h1><p>App Mobile per il Personale di Guardiania</p></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHONE 1 — HOME / DASHBOARD
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone" id="phone1">
+<div class="app">
+  <div class="status-bar">
+    <span class="time">14:32</span>
+    <span class="icons">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </span>
+  </div>
+
+  <div class="app-header">
+    <div class="app-header-top">
+      <div>
+        <h1>Dashboard</h1>
+        <div class="subtitle">Turno 06:00 - 14:00 &bull; G3 Verdi</div>
+      </div>
+      <div class="header-actions">
+        <div class="header-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><div class="dot"></div></div>
+        <div class="header-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <!-- Active Alert Banner -->
+    <div class="alert-banner critical">
+      <div class="ab-top">
+        <span class="ab-severity">CRITICO</span>
+        <span style="font-size:11px;color:var(--red);font-weight:600">Intervento richiesto</span>
+        <span class="ab-time">14:30</span>
+      </div>
+      <div class="ab-title">Aggressione - Piazza Sud</div>
+      <div class="ab-desc">Persona colpita, aggressore in fuga verso Nord. Sei stato assegnato a questo intervento.</div>
+      <div class="ab-actions">
+        <button class="ab-btn primary">📍 Naviga</button>
+        <button class="ab-btn outline">📷 Camera</button>
+        <button class="ab-btn danger">🚨 Rinforzi</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+      <div class="qs-card red"><div class="qs-val text-red">2</div><div class="qs-label">Critici</div></div>
+      <div class="qs-card orange"><div class="qs-val text-orange">5</div><div class="qs-label">Allerte</div></div>
+      <div class="qs-card green"><div class="qs-val text-green">6/8</div><div class="qs-label">In servizio</div></div>
+    </div>
+
+    <!-- My position -->
+    <div class="my-position">
+      <div class="mp-top">
+        <div class="mp-avatar">AV</div>
+        <div class="mp-info"><h3>Alessandro Verdi</h3><p>Agente Senior &bull; G3</p></div>
+        <span class="mp-status responding">Intervento</span>
+      </div>
+      <div class="mp-location">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>In movimento verso Piazza Sud &bull; ETA 1 min</span>
+      </div>
+    </div>
+
+    <!-- Cameras -->
+    <div class="section"><div class="section-head"><h2>Telecamere Zona</h2><span class="more">Tutte &rarr;</span></div></div>
+    <div class="cam-scroll">
+      <div class="cam-card alert">
+        <img src="assets/img/plaza_detection.png" alt="">
+        <div class="overlay"></div><div class="scan"></div>
+        <div class="cam-label">CAM-EXT-07</div><div class="rec">● REC</div>
+        <div class="cam-zone-l">Piazza Sud</div><div class="cam-tag danger">AGGRESSIONE</div>
+      </div>
+      <div class="cam-card warn">
+        <img src="assets/img/gallery_heatmap.png" alt="">
+        <div class="overlay"></div><div class="scan"></div>
+        <div class="cam-label">CAM-INT-03</div><div class="rec">● REC</div>
+        <div class="cam-zone-l">Atrio Centrale</div><div class="cam-tag warn">ASSEMBRAMENTO</div>
+      </div>
+      <div class="cam-card">
+        <img src="assets/img/gallery_entrance.jpg" alt="">
+        <div class="overlay"></div><div class="scan"></div>
+        <div class="cam-label">CAM-INT-01</div><div class="rec">● REC</div>
+        <div class="cam-zone-l">Galleria P0</div><div class="cam-tag ok">AI OK</div>
+      </div>
+      <div class="cam-card">
+        <img src="assets/img/central_rotunda.jpg" alt="">
+        <div class="overlay"></div><div class="scan"></div>
+        <div class="cam-label">CAM-INT-02</div><div class="rec">● REC</div>
+        <div class="cam-zone-l">Galleria P0 Centro</div><div class="cam-tag ok">AI OK</div>
+      </div>
+    </div>
+
+    <!-- Recent Alerts -->
+    <div class="section" style="margin-top:16px"><div class="section-head"><h2>Allarmi Recenti</h2><span class="more">Tutti &rarr;</span></div></div>
+    <div style="padding:0 20px">
+      <div class="m-alert critical">
+        <div class="m-alert-icon critical">⚠</div>
+        <div class="m-alert-body"><div class="m-alert-title">Aggressione - Piazza Sud</div><div class="m-alert-meta">CAM-EXT-07 &bull; Assegnato a te</div></div>
+        <div class="m-alert-time">14:30</div>
+      </div>
+      <div class="m-alert critical">
+        <div class="m-alert-icon critical">🚗</div>
+        <div class="m-alert-body"><div class="m-alert-title">Tentativo furto veicolo</div><div class="m-alert-meta">CAM-PK-02 &bull; G5 Romano</div></div>
+        <div class="m-alert-time">14:27</div>
+      </div>
+      <div class="m-alert high">
+        <div class="m-alert-icon high">👜</div>
+        <div class="m-alert-body"><div class="m-alert-title">Scippo in Galleria P0</div><div class="m-alert-meta">CAM-INT-02 &bull; Concluso</div></div>
+        <div class="m-alert-time">14:15</div>
+      </div>
+      <div class="m-alert medium">
+        <div class="m-alert-icon medium">👥</div>
+        <div class="m-alert-body"><div class="m-alert-title">Assembramento Atrio Centrale</div><div class="m-alert-meta">CAM-INT-03 &bull; Monitoraggio</div></div>
+        <div class="m-alert-time">14:08</div>
+      </div>
+      <div class="m-alert high">
+        <div class="m-alert-icon high">🤕</div>
+        <div class="m-alert-body"><div class="m-alert-title">Caduta persona anziana</div><div class="m-alert-meta">CAM-INT-13 &bull; G2 Neri</div></div>
+        <div class="m-alert-time">13:52</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-bar-inner">
+      <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</div>
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>Mappa</div>
+      <div class="tab sos-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>SOS</div>
+      <div class="tab"><div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg><span class="tab-badge">2</span></div>Radio</div>
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Report</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHONE 2 — ALERT DETAIL + MAP
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone" id="phone2">
+<div class="app">
+  <div class="status-bar">
+    <span class="time">14:32</span>
+    <span class="icons">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </span>
+  </div>
+
+  <div class="app-header" style="padding-bottom:8px">
+    <div class="app-header-top">
+      <div><h1>Dettaglio Allarme</h1><div class="subtitle">Intervento attivo</div></div>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <!-- Severity Banner -->
+    <div style="margin:0 20px 12px;padding:10px 14px;background:linear-gradient(135deg,rgba(239,68,68,.2),rgba(239,68,68,.05));border:1px solid rgba(239,68,68,.3);border-radius:var(--r);display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚠</div>
+      <div style="flex:1"><div style="font-size:16px;font-weight:800">Aggressione Rilevata</div><div style="font-size:11px;color:var(--text2)">CAM-EXT-07 &bull; Piazza Sud</div></div>
+      <div style="text-align:right"><div class="mono" style="font-size:18px;font-weight:700;color:var(--red)">14:30</div><div style="font-size:10px;color:var(--text3)">2 min fa</div></div>
+    </div>
+
+    <!-- Camera Preview -->
+    <div class="detail-img-wrapper">
+      <img src="assets/img/plaza_detection.png" alt="">
+      <div class="overlay"></div>
+      <div class="scan"></div>
+      <div style="position:absolute;top:8px;left:10px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff">CAM-EXT-07 &bull; LIVE</div>
+      <div style="position:absolute;top:8px;right:10px;display:flex;align-items:center;gap:3px;font-size:9px;font-weight:700;color:var(--red)"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 1.5s infinite;display:inline-block"></span> REC</div>
+    </div>
+
+    <!-- Mini Map -->
+    <div class="section"><h2 style="font-size:14px;font-weight:700;margin-bottom:8px">Posizione</h2></div>
+    <div class="m-map" style="margin-bottom:16px">
+      <svg viewBox="0 0 335 250">
+        <rect width="335" height="250" fill="var(--bg2)"/>
+        <rect x="10" y="10" width="315" height="55" rx="4" fill="rgba(59,130,246,.05)" stroke="var(--border)" stroke-width=".5"/>
+        <text x="167" y="30" text-anchor="middle" fill="var(--text3)" font-size="8" font-weight="600">PIAZZA ESTERNA</text>
+        <rect x="10" y="75" width="315" height="50" rx="4" fill="rgba(59,130,246,.05)" stroke="var(--border)" stroke-width=".5"/>
+        <text x="167" y="95" text-anchor="middle" fill="var(--text3)" font-size="8" font-weight="600">GALLERIA P0</text>
+        <rect x="10" y="135" width="315" height="45" rx="4" fill="rgba(59,130,246,.05)" stroke="var(--border)" stroke-width=".5"/>
+        <text x="167" y="155" text-anchor="middle" fill="var(--text3)" font-size="8" font-weight="600">GALLERIA P1</text>
+        <rect x="10" y="190" width="150" height="50" rx="4" fill="rgba(59,130,246,.05)" stroke="var(--border)" stroke-width=".5"/>
+        <text x="85" y="215" text-anchor="middle" fill="var(--text3)" font-size="8">FOOD COURT</text>
+        <rect x="170" y="190" width="155" height="50" rx="4" fill="rgba(59,130,246,.05)" stroke="var(--border)" stroke-width=".5"/>
+        <text x="247" y="215" text-anchor="middle" fill="var(--text3)" font-size="8">PARCHEGGIO</text>
+        <!-- Alert marker -->
+        <circle cx="167" cy="45" r="20" fill="rgba(239,68,68,.15)"><animate attributeName="r" values="12;22;12" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="167" cy="45" r="6" fill="var(--red)"/>
+        <text x="167" y="60" text-anchor="middle" fill="var(--red)" font-size="7" font-weight="700">INCIDENTE</text>
+        <!-- You marker -->
+        <circle cx="167" cy="95" class="you-marker" fill="rgba(59,130,246,.2)" stroke="none"/>
+        <circle cx="167" cy="95" r="6" fill="var(--accent)" stroke="#fff" stroke-width="2"/>
+        <text x="167" y="110" text-anchor="middle" fill="var(--accent)" font-size="7" font-weight="700">TU</text>
+        <!-- Path line -->
+        <line x1="167" y1="88" x2="167" y2="52" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1s" repeatCount="indefinite"/></line>
+      </svg>
+    </div>
+
+    <!-- Details -->
+    <div class="detail-section">
+      <h3>Dettagli Evento</h3>
+      <div class="detail-field"><span class="label">Tipo</span><span class="value text-red" style="font-weight:700">Aggressione</span></div>
+      <div class="detail-field"><span class="label">Severità</span><span class="value text-red">CRITICO</span></div>
+      <div class="detail-field"><span class="label">Confidence AI</span><span class="value">96.3%</span></div>
+      <div class="detail-field"><span class="label">Camera</span><span class="value mono">CAM-EXT-07</span></div>
+      <div class="detail-field"><span class="label">Soggetto</span><span class="value">~180cm, giacca scura</span></div>
+      <div class="detail-field"><span class="label">Velocità fuga</span><span class="value mono">6.2 m/s → Nord</span></div>
+      <div class="detail-field"><span class="label">Audio</span><span class="value text-orange">Urla rilevate (94%)</span></div>
+      <div class="detail-field" style="border:none"><span class="label">Speaker</span><span class="value text-green">Attivo - Deterrente</span></div>
+    </div>
+
+    <div class="detail-section">
+      <h3>Azioni Automatiche</h3>
+      <div style="font-size:12px;line-height:2;color:var(--text2)">
+        ✅ Altoparlante deterrente attivato<br>
+        ✅ Snapshot HD salvato (3 frame)<br>
+        ✅ Registrazione priorità avviata<br>
+        ✅ Tracking soggetto su cam adiacenti<br>
+        ✅ Centrale operativa notificata
+      </div>
+    </div>
+
+    <div class="detail-actions" style="padding-bottom:20px">
+      <button class="detail-action-btn primary">📍 Naviga</button>
+      <button class="detail-action-btn danger">📞 112</button>
+      <button class="detail-action-btn outline">✅ Risolto</button>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-bar-inner">
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</div>
+      <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>Mappa</div>
+      <div class="tab sos-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>SOS</div>
+      <div class="tab"><div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg><span class="tab-badge">2</span></div>Radio</div>
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Report</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHONE 3 — RADIO / COMMS
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone" id="phone3">
+<div class="app">
+  <div class="status-bar">
+    <span class="time">14:33</span>
+    <span class="icons">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </span>
+  </div>
+
+  <div class="app-header" style="padding-bottom:8px">
+    <div class="app-header-top">
+      <div><h1>Radio & Comms</h1><div class="subtitle">Canale principale attivo</div></div>
+      <div class="header-actions">
+        <div class="header-btn" style="background:var(--green);border-color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <!-- PTT -->
+    <div class="ptt-container">
+      <div class="ptt-channel">CH 1 — Sicurezza Principale</div>
+      <div class="ptt-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+      </div>
+      <div class="ptt-label">Tieni premuto per parlare</div>
+      <div class="m-audio-bars" style="height:24px">
+        <div class="m-audio-bar" style="--h:4px;--d:.6s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:3px;--d:.8s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:5px;--d:.5s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:2px;--d:.7s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:4px;--d:.55s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:3px;--d:.65s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:5px;--d:.45s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:2px;--d:.75s;background:var(--text3)"></div>
+        <div class="m-audio-bar" style="--h:4px;--d:.5s;background:var(--text3)"></div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Recent Messages -->
+    <div class="section"><div class="section-head"><h2>Messaggi Recenti</h2></div></div>
+    <div style="padding:0 20px">
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📡</div>
+        <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:0 var(--r) var(--r) var(--r);padding:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;font-weight:700;color:var(--accent)">Centrale</span><span class="mono" style="font-size:10px;color:var(--text3)">14:31</span></div>
+          <div style="font-size:12px;line-height:1.4">Conferma arrivo piazza sud, soggetto direzione nord. Aggiornami posizione.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;flex-direction:row-reverse">
+        <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;color:#fff">AV</div>
+        <div style="flex:1;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:var(--r) 0 var(--r) var(--r);padding:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;font-weight:700;color:var(--accent)">Tu</span><span class="mono" style="font-size:10px;color:var(--text3)">14:31</span></div>
+          <div style="font-size:12px;line-height:1.4">Ricevuto, ETA 1 minuto. Richiedo supporto, soggetto sembra armato.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📡</div>
+        <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:0 var(--r) var(--r) var(--r);padding:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;font-weight:700;color:var(--accent)">Centrale</span><span class="mono" style="font-size:10px;color:var(--text3)">14:32</span></div>
+          <div style="font-size:12px;line-height:1.4">Ricevuto. G1 Bianchi in rinforzo, ETA 3 min. Carabinieri allertati. Non approcciare da solo se armato.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;color:var(--green)">MB</div>
+        <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:0 var(--r) var(--r) var(--r);padding:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:11px;font-weight:700;color:var(--green)">G1 Bianchi</span><span class="mono" style="font-size:10px;color:var(--text3)">14:32</span></div>
+          <div style="font-size:12px;line-height:1.4">In movimento da Galleria P0. Arrivo da ingresso B.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Quick contacts -->
+    <div class="section"><div class="section-head"><h2>Contatti Rapidi</h2></div></div>
+    <div style="padding:0 20px">
+      <div class="comm-card"><div class="c-icon" style="background:rgba(239,68,68,.1)">📡</div><div class="c-info"><div class="c-name">Sala Operativa</div><div class="c-sub">Operatore: Marco Rossi</div></div><button class="c-action radio"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg></button></div>
+      <div class="comm-card"><div class="c-icon" style="background:rgba(59,130,246,.1)">🛡</div><div class="c-info"><div class="c-name">G1 - Bianchi (Capo)</div><div class="c-sub">Galleria P0 - Pattuglia</div></div><button class="c-action radio"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg></button></div>
+      <div class="comm-card"><div class="c-icon" style="background:rgba(59,130,246,.1)">🚔</div><div class="c-info"><div class="c-name">Carabinieri - 112</div><div class="c-sub">Linea diretta emergenze</div></div><button class="c-action call"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72"/></svg></button></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-bar-inner">
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</div>
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>Mappa</div>
+      <div class="tab sos-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>SOS</div>
+      <div class="tab active"><div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg><span class="tab-badge">2</span></div>Radio</div>
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Report</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PHONE 4 — REPORT / RONDA
+     ═══════════════════════════════════════════════════════ -->
+<div class="phone" id="phone4">
+<div class="app">
+  <div class="status-bar">
+    <span class="time">14:33</span>
+    <span class="icons">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </span>
+  </div>
+
+  <div class="app-header" style="padding-bottom:8px">
+    <div class="app-header-top">
+      <div><h1>Report & Ronde</h1><div class="subtitle">Turno 06:00 - 14:00</div></div>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <!-- Current Round -->
+    <div style="margin:0 20px 12px;padding:12px 14px;background:linear-gradient(135deg,rgba(6,182,212,.1),rgba(59,130,246,.05));border:1px solid rgba(6,182,212,.2);border-radius:var(--r)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:700">Ronda Attiva #3</span>
+        <span class="mono" style="font-size:11px;color:var(--cyan)">5/8 checkpoint</span>
+      </div>
+      <div style="height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-bottom:6px">
+        <div style="height:100%;width:62.5%;background:linear-gradient(90deg,var(--cyan),var(--accent));border-radius:3px;transition:width .5s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">Prossimo: Parcheggio Livello -1 &bull; ~4 min</div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="section"><div class="section-head"><h2>Checkpoint Ronda</h2><span class="more" style="font-size:10px;color:var(--text3)">Iniziata 13:15</span></div></div>
+    <div style="padding:0 20px;margin-bottom:16px">
+      <div class="check-item done"><div class="check-box"></div><div class="check-text">Ingresso A - Verifica accessi</div><div class="check-time">13:15</div></div>
+      <div class="check-item done"><div class="check-box"></div><div class="check-text">Galleria P0 - Ispezione negozi</div><div class="check-time">13:28</div></div>
+      <div class="check-item done"><div class="check-box"></div><div class="check-text">Atrio Centrale - Controllo scale</div><div class="check-time">13:40</div></div>
+      <div class="check-item done"><div class="check-box"></div><div class="check-text">Galleria P1 - Perlustrazione</div><div class="check-time">13:52</div></div>
+      <div class="check-item done"><div class="check-box"></div><div class="check-text">Food Court - Verifica uscite</div><div class="check-time">14:05</div></div>
+      <div class="check-item"><div class="check-box"></div><div class="check-text">Parcheggio Livello -1</div><div class="check-time">--:--</div></div>
+      <div class="check-item"><div class="check-box"></div><div class="check-text">Parcheggio Livello 0</div><div class="check-time">--:--</div></div>
+      <div class="check-item"><div class="check-box"></div><div class="check-text">Piazza esterna - Perimetro</div><div class="check-time">--:--</div></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- New Report -->
+    <div class="section"><div class="section-head"><h2>Nuovo Report</h2></div></div>
+    <div style="padding:0 20px;margin-bottom:16px">
+      <div class="form-group">
+        <label>Tipo Segnalazione</label>
+        <select class="form-select">
+          <option>Seleziona tipo...</option>
+          <option>Persona sospetta</option>
+          <option>Furto / Scippo</option>
+          <option>Aggressione / Rissa</option>
+          <option>Danno a proprietà</option>
+          <option>Emergenza medica</option>
+          <option>Guasto impianto</option>
+          <option>Uscita emergenza bloccata</option>
+          <option>Segnalazione generica</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Zona</label>
+        <select class="form-select">
+          <option>Posizione attuale (GPS)</option>
+          <option>Piazza Esterna</option>
+          <option>Galleria P0</option>
+          <option>Galleria P1</option>
+          <option>Atrio Centrale</option>
+          <option>Food Court</option>
+          <option>Parcheggio Liv. 0</option>
+          <option>Parcheggio Liv. -1</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Descrizione</label>
+        <textarea class="form-textarea" placeholder="Descrivi la situazione osservata..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Foto / Video</label>
+        <div class="photo-grid">
+          <div class="photo-slot">+</div>
+          <div class="photo-slot">+</div>
+          <div class="photo-slot">+</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Priorità</label>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;padding:10px;text-align:center;border-radius:var(--rs);border:1px solid rgba(59,130,246,.3);font-size:12px;font-weight:600;color:var(--accent);cursor:pointer">Bassa</div>
+          <div style="flex:1;padding:10px;text-align:center;border-radius:var(--rs);border:1px solid rgba(234,179,8,.3);font-size:12px;font-weight:600;color:var(--yellow);cursor:pointer">Media</div>
+          <div style="flex:1;padding:10px;text-align:center;border-radius:var(--rs);background:rgba(245,158,11,.15);border:1px solid var(--orange);font-size:12px;font-weight:600;color:var(--orange);cursor:pointer">Alta</div>
+          <div style="flex:1;padding:10px;text-align:center;border-radius:var(--rs);border:1px solid rgba(239,68,68,.3);font-size:12px;font-weight:600;color:var(--red);cursor:pointer">Critica</div>
+        </div>
+      </div>
+      <button style="width:100%;padding:14px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Invia Report
+      </button>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Recent Reports -->
+    <div class="section"><div class="section-head"><h2>Report di Oggi</h2><span class="more">Storico &rarr;</span></div></div>
+    <div style="padding:0 20px">
+      <div class="task-card">
+        <div class="task-head"><div class="task-priority" style="background:var(--red)"></div><div class="task-title">Aggressione Piazza Sud</div><div class="task-time">14:30</div></div>
+        <div class="task-desc">Intervento in corso - Soggetto in fuga</div>
+        <div class="task-footer"><span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(239,68,68,.15);color:var(--red);font-weight:600">IN CORSO</span></div>
+      </div>
+      <div class="task-card">
+        <div class="task-head"><div class="task-priority" style="background:var(--orange)"></div><div class="task-title">Scippo Galleria P0</div><div class="task-time">14:15</div></div>
+        <div class="task-desc">Vittima assistita, refurtiva non recuperata</div>
+        <div class="task-footer"><span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(59,130,246,.15);color:var(--accent);font-weight:600">CC ALLERTATI</span></div>
+      </div>
+      <div class="task-card">
+        <div class="task-head"><div class="task-priority" style="background:var(--orange)"></div><div class="task-title">Caduta anziana P1</div><div class="task-time">13:52</div></div>
+        <div class="task-desc">Donna cosciente, 118 intervenuto</div>
+        <div class="task-footer"><span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(34,197,94,.15);color:var(--green);font-weight:600">RISOLTO</span></div>
+      </div>
+      <div class="task-card">
+        <div class="task-head"><div class="task-priority" style="background:var(--yellow)"></div><div class="task-title">Rissa Food Court</div><div class="task-time">11:48</div></div>
+        <div class="task-desc">2 soggetti separati, identificati e allontanati</div>
+        <div class="task-footer"><span style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(34,197,94,.15);color:var(--green);font-weight:600">RISOLTO</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-bar-inner">
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Home</div>
+      <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>Mappa</div>
+      <div class="tab sos-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>SOS</div>
+      <div class="tab"><div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg><span class="tab-badge">2</span></div>Radio</div>
+      <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Report</div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- /showcase -->
+
+<div class="phone-labels">
+  <div class="phone-label">Home Dashboard</div>
+  <div class="phone-label">Dettaglio Allarme</div>
+  <div class="phone-label">Radio & Comunicazioni</div>
+  <div class="phone-label">Report & Ronde</div>
+</div>
+
+<script>
+// Toggle checklist items
+document.querySelectorAll('.check-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    item.classList.toggle('done');
+    if(item.classList.contains('done')){
+      const now=new Date();
+      item.querySelector('.check-time').textContent=now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    }else{
+      item.querySelector('.check-time').textContent='--:--';
+    }
+  });
+});
+</script>
+</body>
+</html>
