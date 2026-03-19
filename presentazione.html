@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4SEK | Sicurezza Intelligente per Centri Commerciali</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --void: #04060d;
+  --abyss: #080c18;
+  --deep: #0c1225;
+  --surface: #121c38;
+  --raised: #182548;
+  --border: #1e3060;
+  --border-l: #2a4080;
+  --text: #d8e0f0;
+  --text-2: #7a8eb8;
+  --text-3: #4a5a80;
+  --blue: #2d7af6;
+  --blue-g: rgba(45,122,246,.15);
+  --cyan: #00d4ff;
+  --cyan-g: rgba(0,212,255,.12);
+  --red: #ff3844;
+  --red-g: rgba(255,56,68,.12);
+  --orange: #ff8c1a;
+  --green: #00e87b;
+  --font: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+  --serif: 'Instrument Serif', Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--void);
+}
+
+body {
+  font-family: var(--font);
+  background: var(--void);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 6px }
+::-webkit-scrollbar-track { background: var(--void) }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px }
+
+/* ═══ GLOBAL GRID TEXTURE ═══ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(45,122,246,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45,122,246,.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══ REVEAL ANIMATIONS ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: .1s }
+.reveal-delay-2 { transition-delay: .2s }
+.reveal-delay-3 { transition-delay: .3s }
+.reveal-delay-4 { transition-delay: .4s }
+.reveal-delay-5 { transition-delay: .5s }
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(.92);
+  transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
+}
+.reveal-scale.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0) }
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0) }
+
+/* ═══ NAVIGATION ═══ */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, var(--void) 0%, transparent 100%);
+  transition: background .3s;
+}
+.nav.scrolled {
+  background: rgba(4,6,13,.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+.nav-logo .mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0;
+}
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--cyan) }
+.nav-cta {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--blue), #1a5fd4);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  cursor: pointer;
+  transition: all .3s;
+  box-shadow: 0 0 20px rgba(45,122,246,.25);
+}
+.nav-cta:hover {
+  box-shadow: 0 0 30px rgba(45,122,246,.4);
+  transform: translateY(-1px);
+}
+
+/* ═══ SECTION LAYOUT ═══ */
+section {
+  position: relative;
+  z-index: 1;
+}
+.section-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.section-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--cyan);
+}
+.section-heading {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 20px;
+}
+.section-heading em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--cyan);
+}
+.section-sub {
+  font-size: 18px;
+  color: var(--text-2);
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+/* ═══ HERO ═══ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding-top: 80px;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(45,122,246,.08) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 50% at 20% 80%, rgba(0,212,255,.06) 0%, transparent 50%);
+}
+.hero-bg::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 800px;
+  height: 800px;
+  transform: translate(-50%, -50%);
+  background: conic-gradient(from 0deg, transparent, rgba(45,122,246,.04), transparent, rgba(0,212,255,.03), transparent);
+  border-radius: 50%;
+  animation: hero-rotate 30s linear infinite;
+}
+@keyframes hero-rotate { to { transform: translate(-50%, -50%) rotate(360deg) } }
+
+/* Scan line effect */
+.hero-scan {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,.15), rgba(45,122,246,.1), transparent);
+  animation: hero-scan-move 6s linear infinite;
+  z-index: 1;
+}
+@keyframes hero-scan-move { from { top: 0 } to { top: 100% } }
+
+.hero .section-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.hero-text { z-index: 2 }
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: var(--blue-g);
+  border: 1px solid rgba(45,122,246,.2);
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--blue);
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+
+.hero h1 {
+  font-size: clamp(44px, 6vw, 76px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+}
+.hero h1 span {
+  display: block;
+}
+.hero h1 .line-accent {
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero h1 .line-serif {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+}
+.hero-desc {
+  font-size: 17px;
+  color: var(--text-2);
+  line-height: 1.7;
+  margin-bottom: 36px;
+  max-width: 480px;
+}
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.btn-primary {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, var(--blue), #1a5fd4);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s;
+  box-shadow: 0 4px 24px rgba(45,122,246,.3);
+  letter-spacing: .3px;
+}
+.btn-primary:hover {
+  box-shadow: 0 6px 32px rgba(45,122,246,.45);
+  transform: translateY(-2px);
+}
+.btn-ghost {
+  padding: 14px 28px;
+  background: transparent;
+  border: 1px solid var(--border-l);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .3s;
+}
+.btn-ghost:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 20px rgba(0,212,255,.1);
+}
+
+.hero-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.hero-camera {
+  position: relative;
+}
+.hero-camera img {
+  width: 320px;
+  height: auto;
+  filter: drop-shadow(0 0 60px rgba(45,122,246,.2)) drop-shadow(0 20px 40px rgba(0,0,0,.5));
+  animation: hero-float 6s ease-in-out infinite;
+}
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0) rotate(0deg) }
+  50% { transform: translateY(-15px) rotate(2deg) }
+}
+.hero-camera::before {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  border-radius: 50%;
+  border: 1px solid rgba(45,122,246,.1);
+  animation: hero-ring 8s linear infinite;
+}
+.hero-camera::after {
+  content: '';
+  position: absolute;
+  inset: -80px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0,212,255,.06);
+  animation: hero-ring 15s linear infinite reverse;
+}
+@keyframes hero-ring { to { transform: rotate(360deg) } }
+
+/* Floating data tags around camera */
+.hero-tag {
+  position: absolute;
+  padding: 8px 14px;
+  background: rgba(12,18,37,.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-2);
+  white-space: nowrap;
+  animation: hero-float 5s ease-in-out infinite;
+}
+.hero-tag .val { color: var(--cyan); font-weight: 500 }
+.hero-tag.t1 { top: 10%; right: -20px; animation-delay: -1s }
+.hero-tag.t2 { bottom: 20%; left: -40px; animation-delay: -3s }
+.hero-tag.t3 { top: 40%; right: -60px; animation-delay: -2s }
+.hero-tag.t4 { bottom: 5%; right: 10%; animation-delay: -4s }
+
+.hero-tag.alert-tag {
+  border-color: rgba(255,56,68,.3);
+  background: rgba(255,56,68,.08);
+}
+.hero-tag.alert-tag .val { color: var(--red) }
+
+/* ═══ PROBLEM SECTION ═══ */
+.problem {
+  padding: 140px 0;
+  position: relative;
+}
+.problem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  margin-top: 60px;
+}
+.problem-card {
+  padding: 32px;
+  background: linear-gradient(145deg, rgba(18,28,56,.6), rgba(8,12,24,.8));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all .4s;
+}
+.problem-card:hover {
+  border-color: var(--border-l);
+  transform: translateY(-4px);
+}
+.problem-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--red), transparent);
+  opacity: .6;
+}
+.problem-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--red-g);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+.problem-card h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.problem-card p {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+/* ═══ AI VISION ═══ */
+.ai-vision {
+  padding: 140px 0;
+  position: relative;
+}
+.ai-vision::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.ai-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 60px;
+}
+.ai-card {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--abyss);
+  cursor: pointer;
+  transition: all .4s;
+  group: true;
+}
+.ai-card:hover {
+  border-color: var(--blue);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(45,122,246,.12);
+}
+.ai-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+  transition: transform .6s cubic-bezier(.16,1,.3,1), filter .4s;
+  filter: brightness(.9) contrast(1.05);
+}
+.ai-card:hover img {
+  transform: scale(1.03);
+  filter: brightness(1) contrast(1.1);
+}
+.ai-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(4,6,13,.9) 100%);
+  pointer-events: none;
+}
+.ai-card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  padding: 24px;
+}
+.ai-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.ai-card-tag.detect {
+  background: rgba(255,56,68,.15);
+  color: var(--red);
+  border: 1px solid rgba(255,56,68,.2);
+}
+.ai-card-tag.analysis {
+  background: var(--cyan-g);
+  color: var(--cyan);
+  border: 1px solid rgba(0,212,255,.2);
+}
+.ai-card-tag.monitor {
+  background: var(--blue-g);
+  color: var(--blue);
+  border: 1px solid rgba(45,122,246,.2);
+}
+.ai-card-tag.alert-t {
+  background: rgba(255,140,26,.12);
+  color: var(--orange);
+  border: 1px solid rgba(255,140,26,.2);
+}
+.ai-card-tag::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ai-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.ai-card p {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+/* Corner brackets decoration */
+.ai-card::before, .ai-card::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border: 2px solid rgba(0,212,255,.2);
+  z-index: 2;
+  transition: border-color .3s;
+  pointer-events: none;
+}
+.ai-card::before {
+  top: 10px; left: 10px;
+  border-right: none; border-bottom: none;
+}
+.ai-card::after {
+  bottom: 10px; right: 10px;
+  border-left: none; border-top: none;
+}
+.ai-card:hover::before, .ai-card:hover::after {
+  border-color: var(--cyan);
+}
+
+/* Live indicator on cards */
+.ai-live {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--red);
+  z-index: 3;
+}
+.ai-live::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: pulse-dot 1.5s infinite;
+}
+
+/* ═══ FEATURES ═══ */
+.features {
+  padding: 140px 0;
+  position: relative;
+}
+.features::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 60px;
+}
+.feature-card {
+  padding: 36px 28px;
+  background: linear-gradient(160deg, rgba(18,28,56,.5), rgba(8,12,24,.7));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: all .4s;
+  position: relative;
+  overflow: hidden;
+}
+.feature-card:hover {
+  border-color: var(--border-l);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,.3);
+}
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.feature-card:hover::after { opacity: 1 }
+.feature-card:nth-child(1)::after { background: linear-gradient(90deg, var(--red), transparent) }
+.feature-card:nth-child(2)::after { background: linear-gradient(90deg, var(--orange), transparent) }
+.feature-card:nth-child(3)::after { background: linear-gradient(90deg, var(--cyan), transparent) }
+.feature-card:nth-child(4)::after { background: linear-gradient(90deg, var(--green), transparent) }
+.feature-card:nth-child(5)::after { background: linear-gradient(90deg, var(--blue), transparent) }
+.feature-card:nth-child(6)::after { background: linear-gradient(90deg, #a855f7, transparent) }
+
+.feature-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 22px;
+}
+.feature-card:nth-child(1) .feature-icon { background: var(--red-g); }
+.feature-card:nth-child(2) .feature-icon { background: rgba(255,140,26,.1); }
+.feature-card:nth-child(3) .feature-icon { background: var(--cyan-g); }
+.feature-card:nth-child(4) .feature-icon { background: rgba(0,232,123,.1); }
+.feature-card:nth-child(5) .feature-icon { background: var(--blue-g); }
+.feature-card:nth-child(6) .feature-icon { background: rgba(168,85,247,.1); }
+
+.feature-card h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.feature-card p {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+.feature-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+.feature-tags span {
+  padding: 3px 10px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: .3px;
+}
+
+/* ═══ DASHBOARD SHOWCASE ═══ */
+.dashboard-section {
+  padding: 140px 0 100px;
+  position: relative;
+}
+.dashboard-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.monitor-frame {
+  margin-top: 60px;
+  position: relative;
+}
+.monitor-bezel {
+  background: #0f0f14;
+  border-radius: 18px 18px 4px 4px;
+  border: 2px solid #1a1a24;
+  padding: 10px 10px 8px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03) inset;
+  position: relative;
+}
+.monitor-bezel::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1a1a22;
+  border: 1px solid #222;
+}
+.monitor-screen {
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  position: relative;
+  background: var(--void);
+}
+.monitor-screen iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  transform-origin: top left;
+}
+.monitor-stand {
+  width: 200px;
+  height: 40px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, #0f0f14, #080810);
+  clip-path: polygon(15% 0, 85% 0, 100% 100%, 0 100%);
+  border-bottom: 2px solid #1a1a24;
+}
+.monitor-base {
+  width: 280px;
+  height: 8px;
+  margin: 0 auto;
+  background: #0f0f14;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #1a1a24;
+  border-top: none;
+}
+
+/* Floating annotations */
+.annotation {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+}
+.annotation-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan), 0 0 24px rgba(0,212,255,.2);
+  animation: pulse-dot 2s infinite;
+}
+.annotation-line {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+  margin: 4px 0;
+}
+.annotation-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--cyan);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  background: rgba(4,6,13,.85);
+  border: 1px solid rgba(0,212,255,.2);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.ann-1 { top: 12%; left: -10px; }
+.ann-2 { top: 35%; right: -10px; }
+.ann-3 { bottom: 25%; left: -10px; }
+.ann-2 .annotation-line {
+  margin-left: auto;
+  background: linear-gradient(270deg, var(--cyan), transparent);
+}
+
+/* ═══ MOBILE SHOWCASE ═══ */
+.mobile-section {
+  padding: 100px 0 140px;
+  position: relative;
+}
+.mobile-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.mobile-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  margin-top: 60px;
+}
+.mobile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.mobile-feature {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: all .3s;
+  cursor: default;
+}
+.mobile-feature:hover {
+  background: rgba(18,28,56,.4);
+  border-color: var(--border);
+}
+.mobile-feature .mf-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--blue-g);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.mobile-feature h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.mobile-feature p {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+.mobile-visual {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+.phone-frame {
+  width: 320px;
+  height: 694px;
+  border-radius: 44px;
+  background: #0a0a10;
+  border: 3px solid #1e1e2a;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 60px rgba(45,122,246,.06);
+  position: relative;
+  overflow: hidden;
+}
+.phone-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 26px;
+  background: #0a0a10;
+  border-radius: 0 0 18px 18px;
+  z-index: 100;
+}
+.phone-frame::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 5px;
+  background: #1a1a24;
+  border-radius: 3px;
+  z-index: 101;
+}
+.phone-frame iframe {
+  width: 375px;
+  height: 812px;
+  border: none;
+  transform: scale(.8533);
+  transform-origin: top left;
+}
+.phone-glow {
+  position: absolute;
+  inset: -60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(45,122,246,.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ═══ STATS ═══ */
+.stats {
+  padding: 120px 0;
+  position: relative;
+  background: linear-gradient(180deg, transparent, rgba(45,122,246,.03), transparent);
+}
+.stats::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.stat-card {
+  text-align: center;
+  padding: 48px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(18,28,56,.4), rgba(8,12,24,.6));
+  transition: all .4s;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card:hover {
+  border-color: var(--border-l);
+  transform: translateY(-4px);
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: .4;
+}
+.stat-value {
+  font-family: var(--mono);
+  font-size: 48px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #fff, var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.stat-label {
+  font-size: 14px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+.stat-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 8px;
+}
+
+/* Counter animation */
+.stat-value[data-count] {
+  transition: all .3s;
+}
+
+/* ═══ CTA ═══ */
+.cta {
+  padding: 140px 0;
+  position: relative;
+  text-align: center;
+}
+.cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.cta-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(45,122,246,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta .section-heading {
+  max-width: 700px;
+  margin: 0 auto 24px;
+}
+.cta .section-sub {
+  max-width: 500px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+.cta-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 48px;
+}
+.cta-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.cta-trust span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cta-trust svg {
+  width: 14px;
+  height: 14px;
+  color: var(--green);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  padding: 40px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-3);
+}
+.footer a { color: var(--text-2); text-decoration: none }
+.footer a:hover { color: var(--cyan) }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 1024px) {
+  .hero .section-inner { grid-template-columns: 1fr; text-align: center }
+  .hero-desc { margin: 0 auto 36px }
+  .hero-actions { justify-content: center }
+  .hero-visual { margin-top: 40px }
+  .hero-tag { display: none }
+  .ai-grid { grid-template-columns: 1fr }
+  .features-grid { grid-template-columns: 1fr 1fr }
+  .stats-grid { grid-template-columns: 1fr 1fr }
+  .mobile-layout { grid-template-columns: 1fr; text-align: center }
+  .mobile-visual { order: -1 }
+  .annotation { display: none }
+  .monitor-bezel { margin: 0 -20px }
+}
+@media (max-width: 768px) {
+  .section-inner { padding: 0 20px }
+  .nav { padding: 12px 20px }
+  .nav-links { display: none }
+  .problem-grid { grid-template-columns: 1fr }
+  .features-grid { grid-template-columns: 1fr }
+  .stats-grid { grid-template-columns: 1fr 1fr }
+  .hero h1 { font-size: 36px; letter-spacing: -1px }
+  .hero-camera img { width: 220px }
+  .stat-value { font-size: 36px }
+  .cta-actions { flex-direction: column; align-items: center }
+  .phone-frame { width: 280px; height: 607px }
+  .phone-frame iframe { transform: scale(.7467) }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAVIGATION ═══ -->
+<nav class="nav" id="nav">
+  <div class="nav-logo">
+    <div class="mark">4S</div>
+    <span>4SEK</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#ai-vision">AI Vision</a></li>
+    <li><a href="#features">Funzionalit&agrave;</a></li>
+    <li><a href="#dashboard">Centrale</a></li>
+    <li><a href="#mobile">App Mobile</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Richiedi Demo</button>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="hero-scan"></div>
+  </div>
+  <div class="section-inner">
+    <div class="hero-text">
+      <div class="hero-badge reveal">PIATTAFORMA AI-POWERED</div>
+      <h1>
+        <span class="line-accent reveal reveal-delay-1">Sicurezza</span>
+        <span class="line-serif reveal reveal-delay-2">Intelligente</span>
+        <span class="reveal reveal-delay-3">per Centri Commerciali</span>
+      </h1>
+      <p class="hero-desc reveal reveal-delay-3">
+        Telecamere con AI a bordo, rilevamento minacce in tempo reale,
+        coordinamento guardianie e risposta automatica agli eventi critici.
+        Tutto in un'unica piattaforma.
+      </p>
+      <div class="hero-actions reveal reveal-delay-4">
+        <button class="btn-primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Scopri 4SEK</button>
+        <button class="btn-ghost" onclick="document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})">Vedi la Centrale</button>
+      </div>
+    </div>
+    <div class="hero-visual reveal-scale">
+      <div class="hero-camera">
+        <img src="assets/img/smart_camera.png" alt="4SEK Smart Camera" />
+        <div class="hero-tag t1"><span class="val">AI ON-BOARD</span> &bull; Edge Computing</div>
+        <div class="hero-tag t2">Confidence: <span class="val">96.3%</span></div>
+        <div class="hero-tag t3 alert-tag"><span class="val">THREAT DETECTED</span></div>
+        <div class="hero-tag t4">Latenza: <span class="val">&lt;800ms</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PROBLEM ═══ -->
+<section class="problem" id="problem">
+  <div class="section-inner">
+    <div class="section-label reveal">Il problema</div>
+    <h2 class="section-heading reveal reveal-delay-1">
+      La sicurezza tradizionale<br><em>non basta pi&ugrave;</em>
+    </h2>
+    <p class="section-sub reveal reveal-delay-2">
+      I sistemi convenzionali si basano sulla sorveglianza passiva.
+      Gli operatori non possono monitorare tutte le telecamere simultaneamente.
+    </p>
+    <div class="problem-grid">
+      <div class="problem-card reveal reveal-delay-1">
+        <div class="problem-icon">&#128065;</div>
+        <h3>Sorveglianza passiva</h3>
+        <p>Gli operatori CCTV possono monitorare efficacemente solo 4-6 schermi. Il resto &egrave; un punto cieco. Gli eventi critici vengono identificati solo a posteriori.</p>
+      </div>
+      <div class="problem-card reveal reveal-delay-2">
+        <div class="problem-icon">&#9201;</div>
+        <h3>Tempi di reazione lenti</h3>
+        <p>Tra il rilevamento di un evento e l'intervento delle guardie passano in media 4-8 minuti. Troppo tempo per prevenire scippi, aggressioni o furti.</p>
+      </div>
+      <div class="problem-card reveal reveal-delay-3">
+        <div class="problem-icon">&#128200;</div>
+        <h3>Zero prevenzione</h3>
+        <p>Senza analisi predittiva, i sistemi tradizionali reagiscono solo dopo l'evento. Nessuna capacit&agrave; di identificare comportamenti sospetti in anticipo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ AI VISION ═══ -->
+<section class="ai-vision" id="ai-vision">
+  <div class="section-inner">
+    <div class="section-label reveal">Visione Artificiale</div>
+    <h2 class="section-heading reveal reveal-delay-1">
+      L'AI che vede<br><em>ci&ograve; che l'occhio umano perde</em>
+    </h2>
+    <p class="section-sub reveal reveal-delay-2">
+      Ogni telecamera analizza il flusso video in tempo reale direttamente on-board,
+      rilevando minacce con precisione superiore al 96%.
+    </p>
+    <div class="ai-grid">
+      <div class="ai-card reveal reveal-delay-1">
+        <img src="img_ai/Screenshot 2026-03-18 at 09.11.26.png" alt="Rilevamento aggressione" />
+        <div class="ai-card-overlay"></div>
+        <div class="ai-live">REC LIVE</div>
+        <div class="ai-card-content">
+          <div class="ai-card-tag detect">Rilevamento attivo</div>
+          <h3>Rilevamento Aggressioni</h3>
+          <p>Bounding box in tempo reale con tracking del soggetto, velocit&agrave; di fuga e direzione. Allarme automatico alla centrale.</p>
+        </div>
+      </div>
+      <div class="ai-card reveal reveal-delay-2">
+        <img src="img_ai/Screenshot 2026-03-18 at 09.11.34.png" alt="Heatmap analisi flussi" />
+        <div class="ai-card-overlay"></div>
+        <div class="ai-live">REC LIVE</div>
+        <div class="ai-card-content">
+          <div class="ai-card-tag analysis">Analisi flussi</div>
+          <h3>Heatmap &amp; Assembramenti</h3>
+          <p>Densit&agrave; in tempo reale, conteggio persone per zona, tempo medio di permanenza. Allerta automatica al superamento soglia.</p>
+        </div>
+      </div>
+      <div class="ai-card reveal reveal-delay-3">
+        <img src="img_ai/Screenshot 2026-03-18 at 09.10.48.png" alt="Rilevamento manomissione parcheggio" />
+        <div class="ai-card-overlay"></div>
+        <div class="ai-live">REC LIVE</div>
+        <div class="ai-card-content">
+          <div class="ai-card-tag alert-t">Alert manomissione</div>
+          <h3>Rilevamento Manomissioni</h3>
+          <p>Identificazione tentativi di effrazione veicoli, soggetti sospetti nei parcheggi, prossimit&agrave; anomala ai veicoli.</p>
+        </div>
+      </div>
+      <div class="ai-card reveal reveal-delay-4">
+        <img src="img_ai/Screenshot 2026-03-18 at 09.10.33.png" alt="Sorveglianza parcheggi" />
+        <div class="ai-card-overlay"></div>
+        <div class="ai-live">REC LIVE</div>
+        <div class="ai-card-content">
+          <div class="ai-card-tag monitor">Monitoraggio continuo</div>
+          <h3>Sorveglianza Parcheggi</h3>
+          <p>Copertura totale multilivello con telecamere a LED di stato integrato. Monitoraggio 24/7 di ogni corsia e rampa.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="section-label reveal">Funzionalit&agrave;</div>
+    <h2 class="section-heading reveal reveal-delay-1">
+      Una piattaforma,<br><em>protezione totale</em>
+    </h2>
+    <p class="section-sub reveal reveal-delay-2">
+      Sei moduli integrati che lavorano in sinergia per una sicurezza proattiva,
+      non pi&ugrave; solo reattiva.
+    </p>
+    <div class="features-grid">
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">&#9888;</div>
+        <h3>Rilevamento Minacce Real-time</h3>
+        <p>L'AI identifica armi, risse, furti e scippi in millisecondi. Ogni fotogramma viene analizzato con modelli neurali on-board.</p>
+        <div class="feature-tags">
+          <span>Armi da fuoco</span><span>Coltelli</span><span>Risse</span><span>Scippi</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">&#127908;</div>
+        <h3>Analisi Audio Intelligente</h3>
+        <p>Microfoni integrati rilevano urla, richieste d'aiuto e suoni anomali. Classificazione automatica con confidence score.</p>
+        <div class="feature-tags">
+          <span>Urla</span><span>Richieste aiuto</span><span>Spari</span><span>Vetri rotti</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon">&#127777;</div>
+        <h3>Heatmap &amp; Analisi Flussi</h3>
+        <p>Mappa termica in tempo reale della densit&agrave; di persone. Rilevamento assembramenti, stazionamento prolungato e gironzolamento.</p>
+        <div class="feature-tags">
+          <span>Densit&agrave;</span><span>Loitering</span><span>Crowd flow</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">&#128266;</div>
+        <h3>Altoparlanti Intelligenti</h3>
+        <p>Speaker integrati nelle telecamere per messaggi deterrenti automatici, segnali d'allarme e indicazioni di evacuazione in tempo reale.</p>
+        <div class="feature-tags">
+          <span>Deterrenti</span><span>Evacuazione</span><span>Alert sonori</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon">&#128110;</div>
+        <h3>Coordinamento Guardianie</h3>
+        <p>Dispatch automatico della guardia pi&ugrave; vicina, tracking GPS delle pattuglie, gestione ronde con checkpoint e report integrato.</p>
+        <div class="feature-tags">
+          <span>Dispatch auto</span><span>GPS tracking</span><span>Ronde</span>
+        </div>
+      </div>
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-icon">&#128680;</div>
+        <h3>Integrazione Forze dell'Ordine</h3>
+        <p>Chiamate automatiche a 112, 118 e 115 con pre-compilazione dati incidente. Condivisione video in tempo reale con le autorit&agrave;.</p>
+        <div class="feature-tags">
+          <span>112 auto-call</span><span>Video sharing</span><span>Report auto</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ DASHBOARD SHOWCASE ═══ -->
+<section class="dashboard-section" id="dashboard">
+  <div class="section-inner">
+    <div class="section-label reveal">Centrale Operativa</div>
+    <h2 class="section-heading reveal reveal-delay-1">
+      Controllo <em>totale</em><br>da un'unica interfaccia
+    </h2>
+    <p class="section-sub reveal reveal-delay-2">
+      Dashboard operativa con vista live su tutte le telecamere,
+      gestione allarmi, mappa interattiva, analitiche e comunicazioni.
+    </p>
+    <div class="monitor-frame reveal-scale">
+      <div class="monitor-bezel">
+        <div class="monitor-screen">
+          <iframe src="index.html" title="4SEK Dashboard" loading="lazy"></iframe>
+        </div>
+        <!-- Annotations -->
+        <div class="annotation ann-1">
+          <div class="annotation-label">&#128249; Live camera grid</div>
+          <div class="annotation-line"></div>
+          <div class="annotation-dot"></div>
+        </div>
+        <div class="annotation ann-2">
+          <div class="annotation-label">&#9888; Alert panel real-time</div>
+          <div class="annotation-line"></div>
+          <div class="annotation-dot"></div>
+        </div>
+        <div class="annotation ann-3">
+          <div class="annotation-label">&#128202; Metriche & KPI</div>
+          <div class="annotation-line"></div>
+          <div class="annotation-dot"></div>
+        </div>
+      </div>
+      <div class="monitor-stand"></div>
+      <div class="monitor-base"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ MOBILE SHOWCASE ═══ -->
+<section class="mobile-section" id="mobile">
+  <div class="section-inner">
+    <div class="section-label reveal">App Mobile</div>
+    <h2 class="section-heading reveal reveal-delay-1">
+      4SEK Guard<br><em>nelle mani del tuo team</em>
+    </h2>
+    <p class="section-sub reveal reveal-delay-2">
+      Ogni guardia ha il potere della centrale operativa direttamente
+      sul proprio smartphone.
+    </p>
+    <div class="mobile-layout">
+      <div class="mobile-info">
+        <div class="mobile-feature reveal reveal-delay-1">
+          <div class="mf-icon">&#128241;</div>
+          <div>
+            <h4>Dashboard Mobile</h4>
+            <p>Panoramica istantanea: allerte attive, statistiche in tempo reale, stato del team e telecamere di zona.</p>
+          </div>
+        </div>
+        <div class="mobile-feature reveal reveal-delay-2">
+          <div class="mf-icon" style="background:var(--red-g)">&#9888;</div>
+          <div>
+            <h4>Dettaglio Allarmi</h4>
+            <p>Feed camera live, mappa con navigazione all'incidente, dati AI completi e azioni automatiche gi&agrave; eseguite.</p>
+          </div>
+        </div>
+        <div class="mobile-feature reveal reveal-delay-3">
+          <div class="mf-icon" style="background:rgba(0,232,123,.1)">&#128225;</div>
+          <div>
+            <h4>Radio &amp; Comunicazioni</h4>
+            <p>Push-to-talk integrato, messaggi in tempo reale dalla centrale, contatti rapidi per emergenze e forze dell'ordine.</p>
+          </div>
+        </div>
+        <div class="mobile-feature reveal reveal-delay-4">
+          <div class="mf-icon" style="background:var(--cyan-g)">&#128203;</div>
+          <div>
+            <h4>Report &amp; Ronde</h4>
+            <p>Gestione ronde con checkpoint, report fotografici, storico interventi e stato avanzamento turno.</p>
+          </div>
+        </div>
+      </div>
+      <div class="mobile-visual reveal-scale">
+        <div class="phone-glow"></div>
+        <div class="phone-frame">
+          <iframe src="mobile.html" title="4SEK Guard Mobile App" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STATS ═══ -->
+<section class="stats" id="stats">
+  <div class="section-inner">
+    <div class="stats-grid">
+      <div class="stat-card reveal reveal-delay-1">
+        <div class="stat-value" data-target="30">0</div>
+        <div class="stat-label">Telecamere AI</div>
+        <div class="stat-sub">+ Edge computing on-board</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-2">
+        <div class="stat-value" data-target="3" data-prefix="<" data-suffix="s">0</div>
+        <div class="stat-label">Tempo di reazione</div>
+        <div class="stat-sub">Dal rilevamento all'alert</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-3">
+        <div class="stat-value" data-target="96.3" data-suffix="%" data-decimal="1">0</div>
+        <div class="stat-label">Accuratezza AI</div>
+        <div class="stat-sub">Confidence media detection</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-4">
+        <div class="stat-value" data-target="24" data-suffix="/7">0</div>
+        <div class="stat-label">Monitoraggio Continuo</div>
+        <div class="stat-sub">Zero interruzioni, zero cali</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta" id="cta">
+  <div class="cta-glow"></div>
+  <div class="section-inner">
+    <div class="section-label reveal" style="justify-content:center">Inizia ora</div>
+    <h2 class="section-heading reveal reveal-delay-1">
+      Proteggi il tuo<br><em>centro commerciale</em>
+    </h2>
+    <p class="section-sub reveal reveal-delay-2">
+      Richiedi una demo personalizzata e scopri come 4SEK
+      trasforma la sicurezza del tuo spazio commerciale.
+    </p>
+    <div class="cta-actions reveal reveal-delay-3">
+      <button class="btn-primary" style="padding:16px 40px;font-size:16px">Richiedi una Demo</button>
+      <button class="btn-ghost">Scarica la Brochure</button>
+    </div>
+    <div class="cta-trust reveal reveal-delay-4">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Setup in 48 ore</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Nessun costo nascosto</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Supporto 24/7</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <p>&copy; 2026 4SEK &mdash; Sicurezza Intelligente &bull; <a href="#">Privacy</a> &bull; <a href="#">Termini</a></p>
+</footer>
+
+<script>
+// ─── SCROLL REVEAL ────────────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal, .reveal-scale, .reveal-left, .reveal-right').forEach(el => {
+  revealObserver.observe(el);
+});
+
+// ─── NAV SCROLL EFFECT ───────────────────────────────
+const nav = document.getElementById('nav');
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  nav.classList.toggle('scrolled', y > 60);
+  lastScroll = y;
+}, { passive: true });
+
+// ─── COUNTER ANIMATION ──────────────────────────────
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseFloat(el.dataset.target);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const decimal = parseInt(el.dataset.decimal) || 0;
+      const duration = 2000;
+      const start = performance.now();
+
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = target * eased;
+        el.textContent = prefix + (decimal ? current.toFixed(decimal) : Math.round(current)) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-value[data-target]').forEach(el => {
+  counterObserver.observe(el);
+});
+
+// ─── PARALLAX ON HERO CAMERA ─────────────────────────
+window.addEventListener('scroll', () => {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  const rect = hero.getBoundingClientRect();
+  if (rect.bottom < 0) return;
+  const y = window.scrollY;
+  const camera = document.querySelector('.hero-camera');
+  if (camera) {
+    camera.style.transform = `translateY(${y * 0.08}px)`;
+  }
+}, { passive: true });
+</script>
+
+</body>
+</html>
